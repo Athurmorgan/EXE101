@@ -1,0 +1,112 @@
+.mock {
+  justify-self: center;
+  width: 100%;
+  max-width: 420px;
+  padding: 22px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 22px;
+  background: #14302a;
+  box-shadow: 0 24px 50px rgb(0 0 0 / 35%);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.barDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-mint);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 6%);
+}
+
+.thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+}
+
+.row b,
+.step b {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+
+.row small,
+.step small {
+  font-size: 12.5px;
+  color: rgb(255 255 255 / 65%);
+}
+
+.cta {
+  margin-top: 14px;
+  padding: 13px;
+  border-radius: 12px;
+  background: var(--color-red);
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.timeline {
+  display: grid;
+}
+
+.step {
+  position: relative;
+  padding: 0 0 20px 64px;
+}
+
+.step::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 51px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-mint);
+}
+
+.step::after {
+  content: '';
+  position: absolute;
+  top: 18px;
+  bottom: -4px;
+  left: 55px;
+  width: 1px;
+  background: rgb(255 255 255 / 20%);
+}
+
+.step:last-child {
+  padding-bottom: 0;
+}
+
+.step:last-child::after {
+  display: none;
+}
+
+.step em {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 13px;
+  font-style: normal;
+  color: var(--color-mint);
+}

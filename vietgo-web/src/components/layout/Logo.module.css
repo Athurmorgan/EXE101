@@ -1,0 +1,57 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.wheel {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  transition: transform 0.9s var(--ease-out);
+}
+
+.logo:hover .wheel {
+  transform: rotate(180deg);
+}
+
+/* Solid parts use the current text colour; only the axle carries the brand red. */
+.tyre {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 3.6;
+}
+
+.rim {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.6;
+}
+
+.spokes {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.hub {
+  fill: currentcolor;
+}
+
+.axle {
+  fill: var(--color-red);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel {
+    transition: none;
+  }
+
+  .logo:hover .wheel {
+    transform: none;
+  }
+}

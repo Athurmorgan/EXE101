@@ -1,0 +1,10 @@
+.badge {
+  display: grid;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 12px;
+  background: #dff6ea;
+  color: var(--color-green);
+}

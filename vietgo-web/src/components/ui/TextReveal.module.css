@@ -1,0 +1,52 @@
+.line {
+  display: block;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+  overflow: hidden;
+}
+
+.inner {
+  display: block;
+}
+
+/* slide: rise out of a mask */
+.slide .inner {
+  transform: translateY(110%);
+  transition: transform 1s var(--ease-out);
+}
+
+.slide.visible .inner {
+  transform: none;
+}
+
+/*
+ * ink: a soft-edged mask sweeps across the line like a brush stroke.
+ * The mask is 3x the line width; sliding it reveals the opaque part from left to right.
+ */
+.ink .line {
+  overflow: visible; /* brush glyphs have long swashes that must not be clipped */
+}
+
+.ink .inner {
+  mask-image: linear-gradient(90deg, #000 0%, #000 66%, transparent 100%);
+  mask-repeat: no-repeat;
+  mask-size: 300% 100%;
+  mask-position: 100% 0;
+  transition: mask-position 1.6s var(--ease-out);
+}
+
+.ink.visible .inner {
+  mask-position: 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide .inner {
+    transform: none;
+    transition: none;
+  }
+
+  .ink .inner {
+    mask-image: none;
+    transition: none;
+  }
+}

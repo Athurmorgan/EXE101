@@ -1,0 +1,123 @@
+.panels {
+  display: flex;
+  gap: 12px;
+  height: 640px;
+  margin-top: 56px;
+}
+
+.panel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 20px;
+  transition: flex 0.8s var(--ease-out);
+}
+
+.active {
+  flex: 5;
+}
+
+.link {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--color-white);
+}
+
+.photoFrame {
+  position: absolute;
+  inset: 0;
+}
+
+.photo {
+  transition: transform 1.2s var(--ease-out);
+}
+
+.active .photo {
+  transform: scale(1.04);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgb(0 0 0 / 72%) 0%, rgb(0 0 0 / 10%) 60%);
+}
+
+.content {
+  position: absolute;
+  right: 28px;
+  bottom: 28px;
+  left: 28px;
+}
+
+.content h3 {
+  font-size: 36px;
+  white-space: nowrap;
+}
+
+.details {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    max-height 0.6s var(--ease-out),
+    opacity 0.5s 0.15s;
+}
+
+.active .details {
+  max-height: 200px;
+  opacity: 1;
+}
+
+.details p {
+  max-width: 44ch;
+  margin-top: 10px;
+  font-size: 15px;
+  color: rgb(255 255 255 / 88%);
+}
+
+.details .tagline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-weight: 500;
+  color: var(--color-mint);
+}
+
+/* Collapsed panels show only a vertical name so the row stays readable. */
+@media (width >= 961px) {
+  .panel:not(.active) .content h3 {
+    font-size: 26px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  .panel:not(.active) .content {
+    right: auto;
+    left: 50%;
+    translate: -50% 0;
+  }
+}
+
+@media (width <= 960px) {
+  .panels {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .panel {
+    flex: none;
+    height: 340px;
+  }
+
+  .details {
+    max-height: none;
+    opacity: 1;
+  }
+
+  .content h3 {
+    font-size: 32px;
+  }
+}

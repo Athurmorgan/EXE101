@@ -1,0 +1,30 @@
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.red {
+  color: var(--color-red-dark);
+}
+
+.red::before {
+  content: '';
+  width: 22px;
+  height: 2px;
+  background: var(--color-red);
+}
+
+.mint {
+  color: var(--color-mint);
+}
+
+.light {
+  color: var(--color-white);
+  opacity: 0.9;
+}

@@ -1,0 +1,110 @@
+.hero {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: max(100svh, 680px);
+  overflow: hidden;
+  background: #0c1c2c;
+  color: var(--color-white);
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgb(4 12 18 / 55%) 0%, rgb(4 12 18 / 0%) 28%),
+    linear-gradient(0deg, rgb(4 12 18 / 88%) 0%, rgb(4 12 18 / 45%) 40%, rgb(4 12 18 / 0%) 75%);
+}
+
+.container {
+  position: relative;
+  width: min(var(--container-width), 100% - 48px);
+}
+
+.content {
+  padding: 140px 0 150px;
+}
+
+/*
+ * Ink-brush lettering. The shadow is a filter on the heading itself (not text-shadow on the masked
+ * lines, which the reveal mask would clip into a visible box) so it follows the letter shapes.
+ */
+.title {
+  margin-top: 8px;
+  font-family: var(--font-brush);
+  font-size: clamp(48px, 8.4vw, 116px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  filter: drop-shadow(0 2px 18px rgb(0 0 0 / 45%));
+}
+
+.bottom {
+  position: absolute;
+  right: 0;
+  bottom: 32px;
+  left: 0;
+}
+
+.sub {
+  max-width: 520px;
+  margin-top: 28px;
+  font-size: 19px;
+  color: rgb(255 255 255 / 90%);
+}
+
+.scroll {
+  position: absolute;
+  right: 24px;
+  bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+}
+
+.scrollLine {
+  position: relative;
+  width: 1px;
+  height: 64px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 30%);
+}
+
+.scrollLine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-white);
+  animation: scroll-line 2s var(--ease-out) infinite;
+}
+
+@keyframes scroll-line {
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@media (width <= 960px) {
+  .content {
+    padding-bottom: 110px;
+  }
+
+  .scroll {
+    display: none;
+  }
+}

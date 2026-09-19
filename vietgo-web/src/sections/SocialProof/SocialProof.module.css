@@ -1,0 +1,49 @@
+.photo {
+  position: absolute;
+  inset: 0;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: rgb(10 38 30 / 88%);
+}
+
+.quote {
+  max-width: 980px;
+  font-size: clamp(26px, 3.2vw, 38px);
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+.author {
+  margin-top: 24px;
+  font-size: 14.5px;
+  color: rgb(255 255 255 / 75%);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 120px;
+  margin-top: 64px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 38px;
+  font-weight: 500;
+  line-height: 1.1;
+  color: var(--color-mint);
+}
+
+.stat span {
+  font-size: 14px;
+  color: rgb(255 255 255 / 75%);
+}
+
+@media (width <= 960px) {
+  .stats {
+    gap: 48px;
+  }
+}

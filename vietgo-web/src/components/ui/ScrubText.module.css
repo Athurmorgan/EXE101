@@ -1,0 +1,7 @@
+.text {
+  max-width: 1040px;
+  font-size: clamp(30px, 4.4vw, 60px);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}

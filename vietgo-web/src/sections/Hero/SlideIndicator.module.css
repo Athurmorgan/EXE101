@@ -1,0 +1,61 @@
+.indicator {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: min(360px, 100%);
+}
+
+.caption {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+  color: var(--color-mint);
+}
+
+.segments {
+  display: flex;
+  gap: 6px;
+}
+
+.segment {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(255 255 255 / 30%);
+}
+
+.segment::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-white);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.done::after {
+  transform: scaleX(1);
+}
+
+.running::after {
+  animation: fill var(--slide-duration) linear forwards;
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

@@ -1,0 +1,113 @@
+:root {
+  --color-cream: #f4f0e8;
+  --color-dark: #0b1a16;
+  --color-forest: #12332a;
+  --color-red: #e8382d;
+  --color-red-dark: #c92a20;
+  --color-mint: #3fe0a0;
+  --color-green: #0f6b4d;
+  --color-ink: #16211d;
+  --color-muted: #4a5a53;
+  --color-white: #fff;
+
+  --radius: 16px;
+  --header-height: 72px;
+  --container-width: 1200px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Ink-brush display face. Latin letters only (no Vietnamese diacritics), so use it sparingly. */
+  --font-brush: 'Yuji Boku', 'Instrument Sans', serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-padding-top: var(--header-height);
+}
+
+body {
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  color: var(--color-ink);
+  background: var(--color-cream);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+svg {
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-mint);
+  outline-offset: 3px;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+}
+
+h1 {
+  font-size: clamp(52px, 9vw, 128px);
+}
+
+h2 {
+  font-size: clamp(36px, 5vw, 68px);
+}
+
+h3 {
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+/* Lenis (smooth scroll) recommended base styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

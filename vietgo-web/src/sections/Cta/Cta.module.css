@@ -1,0 +1,29 @@
+.cta {
+  position: relative;
+  z-index: 8; /* slides over the last stacked panel */
+  padding: 120px 0;
+  overflow: hidden;
+  background: var(--color-red);
+  color: var(--color-white);
+}
+
+.inner {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  align-items: center;
+  gap: 40px;
+}
+
+.cta h2 {
+  margin-top: 24px;
+}
+
+@media (width <= 960px) {
+  .cta {
+    padding: 80px 0;
+  }
+
+  .inner {
+    grid-template-columns: 1fr;
+  }
+}

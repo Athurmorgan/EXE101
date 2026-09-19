@@ -1,0 +1,29 @@
+.section {
+  position: relative;
+  padding: 120px 0;
+  overflow: hidden;
+}
+
+.content {
+  position: relative;
+}
+
+.cream {
+  background: var(--color-cream);
+}
+
+.dark {
+  background: var(--color-dark);
+  color: var(--color-white);
+}
+
+.forest {
+  background: var(--color-forest);
+  color: var(--color-white);
+}
+
+@media (width <= 960px) {
+  .section {
+    padding: 80px 0;
+  }
+}
