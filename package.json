@@ -1,0 +1,38 @@
+{
+  "name": "vivivu",
+  "version": "0.1.0",
+  "private": true,
+  "description": "vivivu - Du lich Viet Nam cho khach nuoc ngoi tu tuc. Monorepo backend (NestJS + FastAPI).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "workspaces": [
+    "apps/api",
+    "packages/*"
+  ],
+  "scripts": {
+    "predev": "npm run build --workspace @vivivu/shared",
+    "dev": "npm run clean --workspace @vivivu/api && npm run build --workspace @vivivu/api && npm run start:dev --workspace @vivivu/api",
+    "build": "npm run build --workspace @vivivu/api",
+    "lint": "npm run lint --workspace @vivivu/api",
+    "lint:fix": "npm run lint:fix --workspace @vivivu/api",
+    "typecheck": "npm run typecheck --workspace @vivivu/api",
+    "test": "npm run test --workspace @vivivu/api",
+    "test:unit": "npm run test:unit --workspace @vivivu/api",
+    "test:e2e": "npm run test:e2e --workspace @vivivu/api",
+    "test:cov": "npm run test:cov --workspace @vivivu/api",
+    "prisma:generate": "npm run prisma:generate --workspace @vivivu/api",
+    "prisma:migrate": "npm run prisma:migrate --workspace @vivivu/api",
+    "prisma:deploy": "npm run prisma:deploy --workspace @vivivu/api",
+    "prisma:seed": "npm run prisma:seed --workspace @vivivu/api",
+    "db:reset": "npm run db:reset --workspace @vivivu/api",
+    "infra:up": "docker compose up -d postgres redis",
+    "infra:down": "docker compose down",
+    "infra:reset": "docker compose down -v",
+    "ai:install": "python -m pip install -r apps/ai-service/requirements.txt",
+    "ai:dev": "python -m uvicorn app.main:app --reload --port 8000 --app-dir apps/ai-service",
+    "ai:lint": "python -m ruff check apps/ai-service",
+    "sync:api": "node scripts/sync-api-types.mjs"
+  }
+}

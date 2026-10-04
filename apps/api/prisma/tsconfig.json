@@ -1,0 +1,15 @@
+{
+  // Rieng cho script Prisma (`seed.ts`): khong dung `extends` vi duong dan tu
+  // file nay nam sau 2 cap so voi `packages/`, de doc nham se tro sai.
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["**/*.ts"]
+}

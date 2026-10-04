@@ -1,0 +1,11 @@
+{
+  "extends": "../../packages/config/tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    // `rootDir` explicit nen `dist/main.js` luon nam dung choi — `nest start`,
+    // `start:prod` va Docker CMD deu tro thang vao file nay.
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

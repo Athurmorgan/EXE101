@@ -1,0 +1,10 @@
+{
+  "name": "@vivivu/config",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared tooling config - tsconfig/eslint base cho moi app trong monorepo",
+  "license": "UNLICENSED",
+  "files": [
+    "tsconfig.base.json"
+  ]
+}

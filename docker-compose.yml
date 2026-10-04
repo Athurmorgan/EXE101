@@ -1,0 +1,95 @@
+# Ha tang phuc vu phat trien. Chay: npm run infra:up
+#
+# Production dung rieng `docker-compose.prod.yml` — chi DB + reverse proxy,
+# khong expose port DB ra ngoai.
+
+name: vivivu
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vivivu-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vivivu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vivivu}
+      POSTGRES_DB: ${POSTGRES_DB:-vivivu}
+      # Chuan hoa locale de moi may ra cung collation.
+      POSTGRES_INITDB_ARGS: '--locale=C --encoding=UTF8'
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      # `-U/-d` lay tu env trong container de doi ten user/db khong lam hong check.
+      test:
+        [
+          'CMD-SHELL',
+          'pg_isready -U ${POSTGRES_USER:-vivivu} -d ${POSTGRES_DB:-vivivu}',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    container_name: vivivu-redis
+    restart: unless-stopped
+    # Cache + rate limit: duong danh den mat khi restart la binh thuong.
+    command: ['redis-server', '--save', '', '--appendonly', 'no']
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: vivivu-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        # Cho Postgres khai bao xong truoc, tranh loi "database does not exist".
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vivivu}:${POSTGRES_PASSWORD:-vivivu}@postgres:5432/${POSTGRES_DB:-vivivu}?schema=public
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-only-access-secret}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-only-refresh-secret}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-30d}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      DEFAULT_LOCALE: ${DEFAULT_LOCALE:-vi}
+    ports:
+      - '${API_PORT:-3000}:3000'
+    volumes:
+      # Nap lai code khi dev, khong can build lai image moi lan sua.
+      - ./apps/api/src:/app/apps/api/src
+      - ./apps/api/prisma:/app/apps/api/prisma
+
+  ai-service:
+    build:
+      context: ./apps/ai-service
+      dockerfile: Dockerfile
+    container_name: vivivu-ai
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '${AI_PORT:-8000}:8000'
+
+volumes:
+  postgres-data:
+    name: vivivu-postgres-data

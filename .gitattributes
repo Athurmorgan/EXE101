@@ -1,0 +1,44 @@
+# Chuan hoa line ending de khac biet Windows (CRLF) va Linux/macOS (LF)
+# khong tao diff "dong het" khi chuyen may.
+* text=auto eol=lf
+
+# File bat buoi phai LF (dung lam shell script / nhan vao Docker).
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# File Windows bat buoc CRLF.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# File co the co CRLF nen de mac dinh.
+*.md text
+*.ts text
+*.js text
+*.json text
+*.mjs text
+*.prisma text
+*.sql text
+*.css text
+*.html text
+
+# File la binary — khong dung quy tac text (se lam hong).
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.woff binary
+*.woff2 binary
+*.mp4 binary
+*.webm binary
+
+# Nen la binary, tranh vie Git tu cho la "text" va lam file hong.
+*.node binary
+*.wasm binary
+*.zip binary
+*.gz binary

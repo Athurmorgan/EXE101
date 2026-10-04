@@ -1,0 +1,186 @@
+// Prisma schema — nguon su that cho database vivivu.
+//
+// Task 1 pham vi: chi mot nhom tai khoan + quyen cho chuc nang dang ky / dang nhap.
+// Cac bang domain (Region, Place, Post...) them o Task 4 theo Plan.md.
+//
+// Quy uat dat ten:
+//   - Model      : PascalCase          -> bang PascalCase
+//   - Field      : camelCase           -> cot snake_case
+//   - Enum       : PascalCase, gia tri UPPER_CASE
+//   - Index      : <model>_<field(s)>_idx
+//   - Quan he     : <modelA>Id (chu hoa chu cai dau) -> khoa ngoai camelCase
+//
+// Gia tri enum phai khop 1-1 voi `packages/shared/src/index.ts`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// AUTH & RBAC
+// ---------------------------------------------------------------------------
+
+/// Tai khoan nguoi dung. `passwordHash` null khi dang nhap bang Google.
+model User {
+  id String @id @default(uuid()) @db.Uuid
+
+  email        String  @unique
+  passwordHash String? @map("password_hash")
+  fullName     String  @map("full_name")
+  avatarUrl    String? @map("avatar_url")
+
+  /// `vi` | `en` — xem SUPPORTED_LOCALES trong packages/shared.
+  locale String @default("vi")
+
+  /// `ADMIN` | `MANAGER` | `USER`. Tai khoan tu dang ky luon la `USER`.
+  role String @default("USER")
+
+  /// `PENDING` | `ACTIVE` | `SUSPENDED` | `DELETED`
+  ///
+  /// `PENDING` = da dang ky nhung chua xac thuc email (chua duoc cap token).
+  /// `DELETED` = admin xoa mem; dong ban ghi van con de giu duong dan tinh.
+  status String @default("PENDING")
+
+  /// `LOCAL` | `GOOGLE`
+  authProvider String @default("LOCAL") @map("auth_provider")
+
+  emailVerifiedAt DateTime? @map("email_verified_at")
+
+  /// Ngay sinh — dung de tinh tuoi va dieu chinh noi dung theo do tuoi.
+  /// Luu ngay sinh chu khong luu so tuoi de tranh loi "tuoi bi cong lai theo nam".
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+
+  /// Dia chi cua nguoi dung. Chua dich — dung nguyen van ban nhu nhap.
+  address String? @db.VarChar(500)
+
+  /// Khoa dinh danh Google (`sub` tu idToken). Null = tai khoan khong lien ket Google.
+  ///
+  /// Dung `sub` chu khong phai `email` vi email co the doi trong Google Account.
+  googleId String? @unique @map("google_id")
+
+  /// Xoa mem: gan thoi diem xoa, giu nguyen dong ban ghi.
+  ///
+  /// Moi truy van deu loai `deletedAt != null` nhung du lieu bai viet / don hang
+  /// van tro ve duoc. Admin muon xoa han thi goi `deleteUser({ hard: true })`.
+  deletedAt DateTime? @map("deleted_at")
+
+  /// Admin khoa tai khoan luc nao — hien thi tren trang quan tri.
+  suspendedAt   DateTime? @map("suspended_at")
+  suspendedBy   String?   @map("suspended_by") @db.Uuid
+  suspendReason String?   @map("suspend_reason") @db.VarChar(500)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  /// Refresh token da hash. Xoa cac dong nay de dang xuat moi noi.
+  refreshTokens RefreshToken[]
+
+  /// Ma xac thuc email con hieu luc. Xoa tai khoan → xoa het token qua cascade.
+  emailVerificationTokens EmailVerificationToken[]
+
+  @@index([status], map: "user_status_idx")
+  /// Truyen thuong xuyen khi Admin xem danh sach theo role.
+  @@index([role], map: "user_role_idx")
+  @@index([createdAt], map: "user_created_at_idx")
+  /// Doc danh sach quan tri — tranh quet ca bang khi phan trang.
+  @@index([deletedAt], map: "user_deleted_at_idx")
+  @@map("users")
+}
+
+/// ────────────────────────────────────────────────────────────────────────
+/// XAC THUC EMAIL
+/// ────────────────────────────────────────────────────────────────────────
+
+/// Ma xac thuc email gui trong email dang ky.
+///
+/// Chi luu **hash** cua ma nhu refresh token — database bi lo khong the dung
+/// duoc de xac thuc account. Token het han bi `AuthService` xoa khi cap lai.
+model EmailVerificationToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// SHA-256 cua ma goc. Ma goc chi co trong email nguoi dung nhin thay.
+  tokenHash String @unique @map("token_hash")
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt  DateTime  @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId], map: "email_verification_user_id_idx")
+  @@index([expiresAt], map: "email_verification_expires_at_idx")
+  @@map("email_verification_tokens")
+}
+
+/// ────────────────────────────────────────────────────────────────────────
+/// AUDIT LOG — "ai lam gi, luc nao"
+/// ────────────────────────────────────────────────────────────────────────
+
+/// Nhat ky thao tac quan tri. Chi ghi thay doi, khong ghi doc.
+///
+/// `before` / `after` luu JSON cua du lieu truoc/sau de hien thi "doi gi" ma
+/// khong can join bang ghi. Muc do nang khong dat `Json` nen PostgreSQL
+/// tu dong tao `jsonb`.
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// Tai khoan thuc hien (`null` khi he thong chay, vi du don dep du lieu het han).
+  actorId    String? @map("actor_id") @db.Uuid
+  /// Email tai khoan thuc hien — giu lai de doc log ca khi tai khoan da xoa.
+  actorEmail String? @map("actor_email")
+
+  /// Ten thao tac, vd `user.suspend`, `user.delete`, `user.update_role`.
+  action String @db.VarChar(80)
+
+  /// Loai tai nguyen bi thay doi, vd `User`.
+  targetType String @map("target_type") @db.VarChar(50)
+  targetId   String @map("target_id") @db.VarChar(64)
+
+  before Json? @map("before")
+  after  Json? @map("after")
+
+  /// IP + user agent de doi chieu khi co tranh chap.
+  ipAddress String? @map("ip_address") @db.VarChar(64)
+  userAgent String? @map("user_agent") @db.VarChar(300)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([actorId], map: "audit_log_actor_id_idx")
+  @@index([targetType, targetId], map: "audit_log_target_idx")
+  @@index([createdAt], map: "audit_log_created_at_idx")
+  @@map("audit_logs")
+}
+
+/// Chi luu hash cua refresh token, khong luu ban than token.
+/// `revokedAt` null = con hieu luc.
+model RefreshToken {
+  id String @id @default(uuid()) @db.Uuid
+
+  /// SHA-256 cua token goc. Token goc chi ton tai trong cookie cua client.
+  tokenHash String @unique @map("token_hash")
+
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+
+  /// Thong tin phong cho trang thai "dang nhap o dau" va doi chieu bat thuong.
+  userAgent String? @map("user_agent")
+  ipAddress String? @map("ip_address")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId], map: "refresh_token_user_id_idx")
+  /// Dung cho `logout-all`: don het token chua thu hoi cua mot tai khoan.
+  @@index([userId, revokedAt], map: "refresh_token_user_revoked_idx")
+  @@index([expiresAt], map: "refresh_token_expires_at_idx")
+  @@map("refresh_tokens")
+}
