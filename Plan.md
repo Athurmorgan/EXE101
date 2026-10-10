@@ -142,10 +142,10 @@ flowchart TB
 |---|---|
 | **Mục tiêu** | Một lần thiết kế schema đủ cho **cả MVP**, không phải sửa cấu trúc ở M2/M3 |
 | **Schema — Auth/RBAC** | `User`, `Role`, `Permission`, `UserRole`, `RolePermission` — dùng **bảng quyền** thay enum cứng → thêm role sau này không cần migrate cấu trúc<br/>`OAuthAccount` (Google) · `RefreshToken` (lưu **hash**, hỗ trợ đăng xuất mọi nơi)<br/>`ManagerRegion` (Manager gán khu vực) · `AuditLog` |
-| **Schema — Domain** | `Region` (63 tỉnh thành, `polygon` GeoJSON)<br/>`Place` — `category`, `nameI18n` JSONB, `lat/lng`, `source` = `GOOGLE`/`VERIFIED_LOCAL`/`USER_SUBMITTED`, `isHiddenPlace` (địa điểm local **không có trên Google Maps**)<br/>`PlaceTag`, `PlacePhoto`, `OpeningHour` |
-| **Schema — Community** | `Post` (`status` PENDING/APPROVED/REJECTED) · `PostMedia` · `Comment` (**không duyệt**) · `Reaction` (**không duyệt**) · `ModerationAction` |
-| **Schema — Khác** | `Translation` (bổ sung bản dịch `en`) · `Itinerary`, `ItineraryStop`, `Payment` — **schema chừa sẵn cho M2** |
-| **File tạo** | `prisma/schema.prisma`, `prisma/seed.ts` (63 tỉnh thành + ma trận quyền + admin/manager/user mẫu + vài địa điểm mẫu) |
+| **Schema — Domain** | `Region` (34 tỉnh/thành: 27 tỉnh + 7 thành phố trực thuộc TW, `polygon` GeoJSON)<br/>`Place` — `category`, `nameI18n` JSONB, `lat/lng`, `source` = `GOOGLE`/`VERIFIED_LOCAL`/`USER_SUBMITTED`, `isHiddenPlace` (địa điểm local **không có trên Google Maps**), food fields (`cuisineType`, `mealType`, `priceRange`, `avgMealPrice`)<br/>`PlaceTag`, `PlacePhoto`, `OpeningHour` |
+| **Schema — Community** | `Post` (`status` PENDING/APPROVED/REJECTED) · `PostMedia` · `Comment` (**không duyệt**, có `authorName` snapshot + `createdAt` metadata) · `Reaction` (**không duyệt**) · `ModerationAction` |
+| **Schema — Khác** | `Shortlist` (danh sách yêu thích + schedule) · `Translation` (bổ sung bản dịch `en`) · `Itinerary` (5 options) · `ItineraryStop` (optionNumber 1-5) · `Payment` — **schema chừa sẵn cho M2** |
+| **File tạo** | `prisma/schema.prisma`, `prisma/seed.ts` (34 tỉnh/thành + ma trận quyền + admin/manager/user mẫu + sample food places) |
 | **Xong khi** | `prisma migrate dev` + `prisma db seed` chạy sạch |
 
 ---
@@ -209,7 +209,7 @@ flowchart TB
 
 | | |
 |---|---|
-| **regions** | CRUD 63 tỉnh/thành (dùng base chung) · tra cứu + polygon để dò quanh khu vực |
+| **regions** | CRUD 34 tỉnh/thành (27 tỉnh + 7 TP trực thuộc TW, dùng base chung) · tra cứu + polygon để dò quanh khu vực |
 | **places** | CRUD địa điểm + quán ăn · Public **chỉ thấy** `status = APPROVED` · lọc theo `category`, `regionId`, `source`, `isHiddenPlace` · endpoint "gần đây" dùng khoảng cách · người dùng tự thêm địa điểm → `PENDING` |
 | **community** | `POST /community/posts` → `PENDING` (**không** hiện trong feed/search/AI cho tới khi duyệt) · upload ảnh/video · comment và reaction/sao **không cần duyệt** |
 | **Xong khi** | User đăng bài → thấy `PENDING` của mình · feed/search chỉ trả bài `APPROVED` · CRUD viết bằng base class, không copy-paste |

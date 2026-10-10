@@ -83,6 +83,24 @@ model User {
   /// Ma xac thuc email con hieu luc. Xoa tai khoan → xoa het token qua cascade.
   emailVerificationTokens EmailVerificationToken[]
 
+  /// Bai viet cong dong cua user (Stage 5, 8).
+  posts Post[]
+
+  /// Comment cua user (Stage 5, 8).
+  comments Comment[]
+
+  /// Reaction (like/love) cua user (Stage 5, 8).
+  reactions Reaction[]
+
+  /// Shortlist (danh sach yeu thich) cua user (Stage 3).
+  shortlists Shortlist[]
+
+  /// Lich trinh do user tao (Stage 4, 6).
+  itineraries Itinerary[]
+
+  /// Khu vuc duoc gan cho Manager (neu role = MANAGER).
+  managerRegions ManagerRegion[]
+
   @@index([status], map: "user_status_idx")
   /// Truyen thuong xuyen khi Admin xem danh sach theo role.
   @@index([role], map: "user_role_idx")
@@ -183,4 +201,365 @@ model RefreshToken {
   @@index([userId, revokedAt], map: "refresh_token_user_revoked_idx")
   @@index([expiresAt], map: "refresh_token_expires_at_idx")
   @@map("refresh_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// DOMAIN - REGIONS & PLACES (Stage 1-3: Discover, Search, Shortlist)
+// ---------------------------------------------------------------------------
+
+/// Khu vuc hanh chinh (34 don vi cap tinh: 27 tinh + 7 thanh pho truc thuoc TW).
+model Region {
+  id       String   @id @default(uuid()) @db.Uuid
+  /// Ten hien thi (vi): "Ha Noi", "TP. Ho Chi Minh"
+  name     String
+  /// Slug URL-friendly, viet thuong khong dau: "ha-noi"
+  slug     String   @unique
+  /// `true` = thanh pho truc thuoc TW, `false` = tinh
+  isCity   Boolean  @default(false) @map("is_city")
+  lat      Float
+  lng      Float
+  /// GeoJSON polygon (de do quanh khu vuc khi can).
+  polygon  Json?
+  /// Quan he phan cap: tinh -> quan/huyen (neu can mo rong sau).
+  parentId String?  @map("parent_id") @db.Uuid
+  parent   Region?  @relation("RegionHierarchy", fields: [parentId], references: [id])
+  children Region[] @relation("RegionHierarchy")
+
+  places         Place[]
+  managerRegions ManagerRegion[]
+  posts          Post[]
+  itineraries    Itinerary[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([slug], map: "region_slug_idx")
+  @@index([isCity], map: "region_is_city_idx")
+  @@map("regions")
+}
+
+/// Dia diem (nha hang, quan cafe, diem tham quan, khach san, shopping...).
+///
+/// `isHiddenPlace = true`: quan local **khong co tren Google Maps**, nguoi
+/// ban dia moi biet - gia tri cot loi cua Vivivu.
+model Place {
+  id            String  @id @default(uuid()) @db.Uuid
+  name          String
+  description   String? @db.Text
+  lat           Float
+  lng           Float
+  address       String?
+  /// "restaurant" | "cafe" | "attraction" | "hotel" | "shopping"
+  category      String
+  /// "GOOGLE" | "VERIFIED_LOCAL" | "USER_SUBMITTED"
+  source        String  @default("USER_SUBMITTED")
+  /// "PENDING" | "APPROVED" | "REJECTED" - public API chi tra APPROVED.
+  status        String  @default("PENDING")
+  /// Dia diem local khong co tren Google Maps (gia tri cot loi cua Vivivu).
+  isHiddenPlace Boolean @default(false) @map("is_hidden_place")
+
+  // === FOOD-SPECIFIC FIELDS (Stage 1-3) ===
+  /// "vietnamese" | "bbq" | "seafood" | "vegetarian" | "international" | ...
+  cuisineType  String? @map("cuisine_type")
+  /// "breakfast" | "lunch" | "dinner" | "coffee" | "all-day"
+  mealType     String? @map("meal_type")
+  /// "budget" | "moderate" | "high-end"
+  priceRange   String? @map("price_range")
+  /// Gia trung binh mot phan an (VND)
+  avgMealPrice Int?    @map("avg_meal_price")
+
+  // === GOOGLE PLACES DATA ===
+  googlePlaceId String? @map("google_place_id")
+  googleRating  Float?  @map("google_rating")
+  googleReviews Int?    @map("google_reviews")
+
+  // === RELATIONSHIPS ===
+  regionId String? @map("region_id") @db.Uuid
+  region   Region? @relation(fields: [regionId], references: [id])
+
+  /// Diem AI danh gia chat luong (0-10), dung cho ranking itinerary.
+  aiScore Float? @map("ai_score")
+
+  photos         PlacePhoto[]
+  openingHours   OpeningHour[]
+  posts          Post[]
+  comments       Comment[]
+  reactions      Reaction[]
+  shortlists     Shortlist[]
+  itineraryStops ItineraryStop[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([regionId], map: "place_region_idx")
+  @@index([category], map: "place_category_idx")
+  @@index([cuisineType], map: "place_cuisine_idx")
+  @@index([priceRange], map: "place_price_idx")
+  @@index([status], map: "place_status_idx")
+  @@index([isHiddenPlace], map: "place_is_hidden_idx")
+  @@map("places")
+}
+
+/// Anh cua dia diem (upload tu nguoi dung hoac scrape tu Google).
+model PlacePhoto {
+  id             String   @id @default(uuid()) @db.Uuid
+  placeId        String   @map("place_id") @db.Uuid
+  place          Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  url            String
+  caption        String?
+  /// `true` khi anh tu Google hoac da qua duyet Manager.
+  isVerified     Boolean  @default(false) @map("is_verified")
+  /// Ten nguoi dang (snapshot) + thoi diem dang.
+  uploadedByName String   @map("uploaded_by_name")
+  uploadedAt     DateTime @default(now()) @map("uploaded_at")
+
+  @@index([placeId], map: "place_photo_place_idx")
+  @@map("place_photos")
+}
+
+/// Gio mo cua dia diem theo tung ngay trong tuan.
+model OpeningHour {
+  id        String  @id @default(uuid()) @db.Uuid
+  placeId   String  @map("place_id") @db.Uuid
+  place     Place   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  /// 0 = Sunday, 1 = Monday, ..., 6 = Saturday.
+  dayOfWeek Int     @map("day_of_week")
+  /// Dinh dang "HH:mm", vi du "08:00".
+  openTime  String  @map("open_time")
+  closeTime String  @map("close_time")
+  isClosed  Boolean @default(false) @map("is_closed")
+
+  @@unique([placeId, dayOfWeek], map: "opening_hour_place_day_idx")
+  @@map("opening_hours")
+}
+
+// ---------------------------------------------------------------------------
+// SHORTLIST (Stage 3) - Danh sach yeu thich cua user
+// ---------------------------------------------------------------------------
+
+/// User luu dia diem vao "shortlist" de len lich trinh sau.
+///
+/// `order` dung de sap xep thu tu trong shortlist; FE co the cho phep nguoi
+/// dung keo tha de thay doi.
+model Shortlist {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  placeId   String   @map("place_id") @db.Uuid
+  place     Place    @relation(fields: [placeId], references: [id])
+  /// Ghi chu ca nhan (vi du: "an trua o day").
+  notes     String?  @db.Text
+  /// Thu tu trong shortlist (0 = dau tien).
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, placeId], map: "shortlist_user_place_unique")
+  @@index([userId], map: "shortlist_user_idx")
+  @@map("shortlists")
+}
+
+// ---------------------------------------------------------------------------
+// COMMUNITY (Stage 5, 8) - Posts, Media, Comments, Reactions
+// ---------------------------------------------------------------------------
+
+/// Bai viet quang cao cua quan/anh local. **Phai qua duyet** (status: PENDING -> APPROVED/REJECTED).
+model Post {
+  id       String  @id @default(uuid()) @db.Uuid
+  title    String
+  content  String  @db.Text
+  authorId String  @map("author_id") @db.Uuid
+  author   User    @relation(fields: [authorId], references: [id])
+  placeId  String? @map("place_id") @db.Uuid
+  place    Place?  @relation(fields: [placeId], references: [id])
+  regionId String? @map("region_id") @db.Uuid
+  region   Region? @relation(fields: [regionId], references: [id])
+  /// "PENDING" | "APPROVED" | "REJECTED"
+  status   String  @default("PENDING")
+
+  media     PostMedia[]
+  comments  Comment[]
+  reactions Reaction[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([authorId], map: "post_author_idx")
+  @@index([status], map: "post_status_idx")
+  @@index([regionId], map: "post_region_idx")
+  @@map("posts")
+}
+
+/// Media (anh/video) dinh kem bai viet. Moi media cung co `status` rieng de
+/// Manager co the duyet tung anh mot.
+model PostMedia {
+  id             String   @id @default(uuid()) @db.Uuid
+  postId         String   @map("post_id") @db.Uuid
+  post           Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  /// "image" | "video"
+  type           String
+  url            String
+  thumbnail      String?
+  /// "PENDING" | "APPROVED" | "REJECTED"
+  status         String   @default("PENDING")
+  /// Ten nguoi dang (snapshot) + thoi diem dang.
+  uploadedByName String   @map("uploaded_by_name")
+  uploadedAt     DateTime @default(now()) @map("uploaded_at")
+
+  @@index([postId], map: "post_media_post_idx")
+  @@map("post_media")
+}
+
+/// Comment **KHONG can duyet** (theo ma tran quyen). Co the comment vao Place
+/// hoac Post. Ho tro reply (parentId).
+///
+/// **Metadata bat buoc**: `authorName` (snapshot ten tai khoan) + `createdAt`
+/// de hien thi "ai comment, khi nao" ma khong can join bang User.
+model Comment {
+  id       String    @id @default(uuid()) @db.Uuid
+  content  String    @db.Text
+  authorId String    @map("author_id") @db.Uuid
+  author   User      @relation(fields: [authorId], references: [id])
+  placeId  String?   @map("place_id") @db.Uuid
+  place    Place?    @relation(fields: [placeId], references: [id])
+  postId   String?   @map("post_id") @db.Uuid
+  post     Post?     @relation(fields: [postId], references: [id])
+  parentId String?   @map("parent_id") @db.Uuid
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  Comment[] @relation("CommentReplies")
+
+  /// Ten tai khoan **snapshot** - dam bao luon hien thi duoc ten nguoi comment
+  /// ke ca khi user doi ten hoac bi xoa.
+  authorName   String   @map("author_name")
+  /// Avatar snapshot (optional, co the null).
+  authorAvatar String?  @map("author_avatar")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([authorId], map: "comment_author_idx")
+  @@index([placeId], map: "comment_place_idx")
+  @@index([postId], map: "comment_post_idx")
+  @@index([parentId], map: "comment_parent_idx")
+  @@map("comments")
+}
+
+/// Reaction (like/love/helpful) **KHONG can duyet**.
+model Reaction {
+  id      String  @id @default(uuid()) @db.Uuid
+  /// "like" | "love" | "wow" | "helpful"
+  type    String
+  userId  String  @map("user_id") @db.Uuid
+  user    User    @relation(fields: [userId], references: [id])
+  placeId String? @map("place_id") @db.Uuid
+  place   Place?  @relation(fields: [placeId], references: [id])
+  postId  String? @map("post_id") @db.Uuid
+  post    Post?   @relation(fields: [postId], references: [id])
+
+  /// Ten tai khoan (snapshot) + thoi diem.
+  userName  String   @map("user_name")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, placeId], map: "reaction_user_place_unique")
+  @@unique([userId, postId], map: "reaction_user_post_unique")
+  @@index([placeId], map: "reaction_place_idx")
+  @@index([postId], map: "reaction_post_idx")
+  @@map("reactions")
+}
+
+// ---------------------------------------------------------------------------
+// MANAGER REGIONS - Phan vung cho Manager
+// ---------------------------------------------------------------------------
+
+/// Gan Manager voi khu vuc (tinh/thanh) ho duyet.
+///
+/// Manager chi duoc duyet noi dung **trong khu vuc duoc gan** (kiem tra boi
+/// `RegionScopeGuard` se xay o Task 7).
+model ManagerRegion {
+  id        String   @id @default(uuid()) @db.Uuid
+  managerId String   @map("manager_id") @db.Uuid
+  manager   User     @relation(fields: [managerId], references: [id])
+  regionId  String   @map("region_id") @db.Uuid
+  region    Region   @relation(fields: [regionId], references: [id])
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([managerId, regionId], map: "manager_region_unique")
+  @@index([managerId], map: "manager_region_manager_idx")
+  @@index([regionId], map: "manager_region_region_idx")
+  @@map("manager_regions")
+}
+
+// ---------------------------------------------------------------------------
+// ITINERARY (Stage 4, 6) - Lich trinh AI voi 5 options
+// ---------------------------------------------------------------------------
+
+/// Lich trinh cua user, sinh ra boi AI voi 5 options de user chon.
+///
+/// `selectedOption`: option nao (1-5) user da chon de ap dung. `null` = chua chon.
+model Itinerary {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  user           User     @relation(fields: [userId], references: [id])
+  title          String?
+  regionId       String?  @map("region_id") @db.Uuid
+  region         Region?  @relation(fields: [regionId], references: [id])
+  startDate      DateTime @map("start_date") @db.Date
+  endDate        DateTime @map("end_date") @db.Date
+  /// "DRAFT" | "APPLIED" | "COMPLETED"
+  status         String   @default("DRAFT")
+  /// 1-5: option duoc user chon. Null = chua chon (van con 5 options).
+  selectedOption Int?     @map("selected_option")
+  /// So ngay cua lich trinh.
+  days           Int
+  /// So tien uoc tinh (VND), dung cho Stage 4.
+  estimatedCost  Int?     @map("estimated_cost")
+
+  stops ItineraryStop[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId], map: "itinerary_user_idx")
+  @@index([status], map: "itinerary_status_idx")
+  @@map("itineraries")
+}
+
+/// Mot diem dung trong lich trinh. Moi stop thuoc mot `optionNumber` (1-5).
+///
+/// Sau khi user chon 1 option, schedule se xoa het stops cua cac option khac
+/// va giu lai chi option duoc chon.
+model ItineraryStop {
+  id          String    @id @default(uuid()) @db.Uuid
+  itineraryId String    @map("itinerary_id") @db.Uuid
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  placeId     String?   @map("place_id") @db.Uuid
+  place       Place?    @relation(fields: [placeId], references: [id])
+
+  /// Snapshot thong tin place (giu lai neu place bi xoa sau).
+  placeName    String  @map("place_name")
+  placeLat     Float   @map("place_lat")
+  placeLng     Float   @map("place_lng")
+  placeAddress String? @map("place_address")
+
+  dayNumber         Int     @map("day_number")
+  orderInDay        Int     @map("order_in_day")
+  /// Thoi gian trong ngay dinh dang "HH:mm", vi du "09:00".
+  scheduledTime     String? @map("scheduled_time")
+  /// Thoi gian uoc tinh tai diem (phut).
+  estimatedDuration Int?    @map("estimated_duration")
+  /// Chi phi uoc tinh (VND).
+  estimatedCost     Int?    @map("estimated_cost")
+  /// Thoi gian di chuyen tu diem truoc do (phut).
+  travelTimeFromPrevMin Int? @map("travel_time_from_prev_min")
+  /// "meal" (an uong) | "visit" (tham quan) | "transit" (di chuyen)
+  stopType          String  @default("visit") @map("stop_type")
+  /// "breakfast" | "lunch" | "dinner" | "coffee" (neu stopType = "meal")
+  mealType          String? @map("meal_type")
+  notes             String?
+  /// 1-5: thuoc option nao trong 5 AI-generated options.
+  optionNumber      Int     @map("option_number")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([itineraryId], map: "itinerary_stop_itinerary_idx")
+  @@index([optionNumber], map: "itinerary_stop_option_idx")
+  @@map("itinerary_stops")
 }

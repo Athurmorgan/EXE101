@@ -130,9 +130,21 @@ export const AUDIT_ACTIONS = {
   USER_CREATE_BY_ADMIN: 'user.create_by_admin',
   EMAIL_VERIFY_SENT: 'email.verify_sent',
   GOOGLE_ACCOUNT_LINKED: 'google.account_linked',
+  POST_APPROVE: 'post.approve',
+  POST_REJECT: 'post.reject',
+  PLACE_APPROVE: 'place.approve',
+  PLACE_REJECT: 'place.reject',
+  ITINERARY_GENERATE: 'itinerary.generate',
+  ITINERARY_APPLY: 'itinerary.apply',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
 
 /** Ten loai tai nguyen trong audit log. */
-export const AUDIT_TARGET_TYPES = { USER: 'User' } as const;
+export const AUDIT_TARGET_TYPES = {
+  USER: 'User',
+  POST: 'Post',
+  PLACE: 'Place',
+  COMMENT: 'Comment',
+  ITINERARY: 'Itinerary',
+} as const;

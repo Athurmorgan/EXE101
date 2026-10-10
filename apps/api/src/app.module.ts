@@ -13,6 +13,15 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { UsersModule } from './modules/users/users.module';
+import { RegionsModule } from './modules/regions/regions.module';
+import { PlacesModule } from './modules/places/places.module';
+import { ShortlistModule } from './modules/shortlist/shortlist.module';
+import { CommentsModule } from './modules/comments/comments.module';
+import { ReactionsModule } from './modules/reactions/reactions.module';
+import { CommunityModule } from './modules/community/community.module';
+import { ModerationModule } from './modules/moderation/moderation.module';
+import { AiModule } from './modules/ai/ai.module';
+import { ItineraryModule } from './modules/itinerary/itinerary.module';
 
 @Module({
   imports: [
@@ -23,6 +32,19 @@ import { UsersModule } from './modules/users/users.module';
     AuditModule,
     AuthModule,
     UsersModule,
+    // === STAGE 1-3: Discover, Search, Shortlist ===
+    RegionsModule,
+    PlacesModule,
+    ShortlistModule,
+    // === STAGE 5, 8: Community (Comments, Reactions) ===
+    CommentsModule,
+    ReactionsModule,
+    CommunityModule,
+    // === STAGE 8: Moderation ===
+    ModerationModule,
+    // === STAGE 4, 6: AI Itinerary Planning ===
+    AiModule,
+    ItineraryModule,
   ],
   controllers: [HealthController],
   providers: [
