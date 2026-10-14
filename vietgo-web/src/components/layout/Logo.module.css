@@ -18,34 +18,6 @@
   transform: rotate(180deg);
 }
 
-/* Solid parts use the current text colour; only the axle carries the brand red. */
-.tyre {
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 3.6;
-}
-
-.rim {
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 1.6;
-}
-
-.spokes {
-  fill: none;
-  stroke: currentcolor;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.hub {
-  fill: currentcolor;
-}
-
-.axle {
-  fill: var(--color-red);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .wheel {
     transition: none;

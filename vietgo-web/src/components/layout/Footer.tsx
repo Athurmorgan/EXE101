@@ -1,4 +1,4 @@
-import { Container } from '@/components/ui/Container';
+import { Container } from '@/components/layout/Container';
 import styles from './Footer.module.css';
 import { Logo } from './Logo';
 import { FOOTER_LINKS } from './navigation';
@@ -15,7 +15,7 @@ export function Footer() {
             </li>
           ))}
         </ul>
-        <p className={styles.copy}>© {new Date().getFullYear()} VietGo · Made in Vietnam</p>
+        <p className={styles.copy}>© {new Date().getFullYear()} vivivu · Made in Vietnam</p>
       </Container>
     </footer>
   );

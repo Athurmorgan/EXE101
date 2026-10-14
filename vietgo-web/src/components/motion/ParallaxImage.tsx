@@ -1,5 +1,5 @@
 import type { ImageAsset } from '@/data/images';
-import { Image } from './Image';
+import { Image } from '@/components/ui/Image';
 import { ParallaxLayer } from './ParallaxLayer';
 
 interface ParallaxImageProps {

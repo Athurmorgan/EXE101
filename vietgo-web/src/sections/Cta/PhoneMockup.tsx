@@ -19,7 +19,7 @@ const MAP_PINS = [
   { left: '40%', top: '72%', color: '#f2b84b' },
 ] as const;
 
-/** Decorative phone showing a simplified VietGo home screen. */
+/** Decorative phone showing a simplified vivivu home screen. */
 export function PhoneMockup() {
   return (
     <div className={styles.wrap} aria-hidden="true">
@@ -29,7 +29,7 @@ export function PhoneMockup() {
       <div className={styles.phone}>
         <div className={styles.screen}>
           <div className={styles.top}>
-            <b>VietGo</b>
+            <b>vivivu</b>
             <span>Hà Nội · 27°C</span>
           </div>
 

@@ -1,8 +1,8 @@
-import { CountUp } from '@/components/ui/CountUp';
+import { CountUp } from '@/components/motion/CountUp';
 import { Eyebrow } from '@/components/ui/Eyebrow';
-import { ParallaxImage } from '@/components/ui/ParallaxImage';
-import { Reveal } from '@/components/ui/Reveal';
-import { Section } from '@/components/ui/Section';
+import { ParallaxImage } from '@/components/motion/ParallaxImage';
+import { Reveal } from '@/components/motion/Reveal';
+import { Section } from '@/components/layout/Section';
 import { IMAGES } from '@/data/images';
 import styles from './SocialProof.module.css';
 

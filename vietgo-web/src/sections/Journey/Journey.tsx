@@ -1,13 +1,17 @@
-import { useRef } from 'react';
+import { useRef, type ComponentType } from 'react';
+import { Container } from '@/components/layout/Container';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 import { Button } from '@/components/ui/Button';
-import { Container } from '@/components/ui/Container';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Image } from '@/components/ui/Image';
-import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Lines } from '@/components/ui/Lines';
 import { DESKTOP, gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import { cx } from '@/utils/cx';
 import styles from './Journey.module.css';
-import { MOMENTS } from './moments';
+import { MOMENTS, type MockKind } from './moments';
+import { FeedMock, PlanMock } from './Mocks';
+
+const MOCKS: Record<MockKind, ComponentType> = { feed: FeedMock, plan: PlanMock };
 
 /**
  * Two scenes from a day in Vietnam. On wide screens the stage is pinned and the scenes
@@ -66,29 +70,34 @@ export function Journey() {
               the last ride home.
             </>
           }
-          lead="VietGo learns the shape of your day, then quietly brings the next useful thing within reach."
+          lead="vivivu learns the shape of your day, then quietly brings the next useful thing within reach."
           leadTone="light"
         />
       </Container>
 
       <div ref={stageRef} className={styles.stage}>
-        {MOMENTS.map(({ time, title, description, mock, image }, index) => (
-          <div key={time} data-scene className={styles.scene}>
-            <Image image={image} decorative className={styles.photo} />
-            <div className={styles.shade} />
-            <Container className={cx(styles.sceneInner, index % 2 === 1 && styles.reversed)}>
-              <div className={styles.text}>
-                <Eyebrow tone="mint">{time}</Eyebrow>
-                <h3>{title}</h3>
-                <p>{description}</p>
-                <Button href="#download" size="sm" withArrow>
-                  See the journey
-                </Button>
-              </div>
-              {mock}
-            </Container>
-          </div>
-        ))}
+        {MOMENTS.map(({ time, titleLines, description, mock, image }, index) => {
+          const Mock = MOCKS[mock];
+          return (
+            <div key={time} data-scene className={styles.scene}>
+              <Image image={image} decorative className={styles.photo} />
+              <div className={styles.shade} />
+              <Container className={cx(styles.sceneInner, index % 2 === 1 && styles.reversed)}>
+                <div className={styles.text}>
+                  <Eyebrow tone="mint">{time}</Eyebrow>
+                  <h3>
+                    <Lines lines={titleLines} />
+                  </h3>
+                  <p>{description}</p>
+                  <Button href="#download" size="sm" withArrow>
+                    See the journey
+                  </Button>
+                </div>
+                <Mock />
+              </Container>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

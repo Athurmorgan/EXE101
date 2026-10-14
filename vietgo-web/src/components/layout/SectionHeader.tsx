@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { cx } from '@/utils/cx';
-import { Eyebrow, type EyebrowTone } from './Eyebrow';
-import { Lead, type LeadTone } from './Lead';
-import { Reveal } from './Reveal';
+import { Eyebrow, type EyebrowTone } from '@/components/ui/Eyebrow';
+import { Lead, type LeadTone } from '@/components/ui/Lead';
+import { Reveal } from '@/components/motion/Reveal';
 import styles from './SectionHeader.module.css';
 
 interface SectionHeaderProps {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
-import { Container } from '@/components/ui/Container';
+import { Container } from '@/components/layout/Container';
 import { cx } from '@/utils/cx';
 import styles from './Header.module.css';
 import { Logo } from './Logo';
@@ -51,9 +51,12 @@ export function Header() {
                   <a href={href}>{label}</a>
                 </li>
               ))}
+              <li className={styles.hideOnMobile}>
+                <a href="/app/login">Sign in</a>
+              </li>
               <li>
-                <Button href="#download" size="sm" withArrow>
-                  Get the app
+                <Button href="/app/discover" size="sm" withArrow>
+                  Open the app
                 </Button>
               </li>
             </ul>

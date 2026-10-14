@@ -1,7 +1,7 @@
-import { Reveal } from '@/components/ui/Reveal';
+import { Reveal } from '@/components/motion/Reveal';
 import { ScrollCarousel } from '@/components/ui/ScrollCarousel';
-import { Section } from '@/components/ui/Section';
-import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Section } from '@/components/layout/Section';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 import { ServiceCard } from './ServiceCard';
 import { SERVICES } from './services';
 
@@ -23,7 +23,7 @@ export function Ecosystem() {
 
       <Reveal>
         <ScrollCarousel
-          label="VietGo services"
+          label="vivivu services"
           items={SERVICES}
           getKey={(service) => service.title}
           renderItem={(service, index) => (

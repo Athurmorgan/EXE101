@@ -1,0 +1,27 @@
+/**
+ * Tailwind for the "app" surface (everything under /app/*: auth, discover,
+ * place detail, itinerary...). The landing page keeps its own hand-written
+ * CSS Modules — see `styles/global.css` — untouched.
+ *
+ * `@theme` below re-declares the SAME palette as `global.css` so both halves
+ * of the site share one visual language. Keep the two in sync by hand until
+ * the landing page is migrated too.
+ */
+@import 'tailwindcss';
+
+@theme {
+  --color-cream: #f4f0e8;
+  --color-dark: #0b1a16;
+  --color-forest: #12332a;
+  --color-red: #e8382d;
+  --color-red-dark: #c92a20;
+  --color-mint: #3fe0a0;
+  --color-green: #0f6b4d;
+  --color-ink: #16211d;
+  --color-muted: #4a5a53;
+
+  --font-sans: 'Instrument Sans', system-ui, sans-serif;
+  /* Serif display face for headings on app/content pages — never used on the
+     cinematic landing, which keeps its own brush font. */
+  --font-serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+}

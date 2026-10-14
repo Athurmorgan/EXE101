@@ -1,4 +1,4 @@
-import { CurtainReveal } from '@/components/ui/CurtainReveal';
+import { CurtainReveal } from '@/components/motion/CurtainReveal';
 import { IconBadge } from '@/components/ui/IconBadge';
 import { Image } from '@/components/ui/Image';
 import styles from './ServiceCard.module.css';

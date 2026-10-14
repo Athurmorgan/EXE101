@@ -25,28 +25,46 @@ npm run dev        # start the dev server
 ```
 public/images/      Optimized WebP photos + CREDITS.md (sources and licenses)
 src/
-├── components/
-│   ├── layout/     Header, Footer, Logo, ScrollProgress, navigation data
-│   └── ui/         Reusable blocks (Button, Section, Image, ParallaxImage,
-│                   TextReveal, ScrubText, ScrollCarousel, StackedSection, ...)
-├── data/           Shared content, e.g. the image catalogue (images.ts)
-├── hooks/          Reusable hooks (useInView, useDragScroll)
-├── lib/            GSAP setup and shared media queries
-├── providers/      SmoothScroll (Lenis <-> ScrollTrigger)
-├── sections/       One folder per page section (component + styles + data)
+├── components/     Shared building blocks, no page-specific content
+│   ├── ui/         Small primitives: Button, Icon, Image, Eyebrow, Lead, ScrollCarousel, ...
+│   ├── layout/     Page structure: Header, Footer, Logo, Section, Container, StackedSection, ...
+│   └── motion/     Animation wrappers: Reveal, TextReveal, ScrubText, ParallaxLayer, CurtainReveal, ...
+├── sections/       Landing-page sections, one folder each (component + styles + data)
+├── pages/          Pages: which sections appear, in what order (HomePage)
+├── data/           Content shared by several sections, e.g. the image catalogue
+├── hooks/          Reusable hooks (useInView, useDragScroll, ...)
+├── lib/            Third-party setup, e.g. GSAP plugins and shared media queries
+├── providers/      App-wide providers, e.g. smooth scrolling
 ├── styles/         Global CSS: design tokens and base styles
-├── utils/          Small helpers
-├── App.tsx         Page composition
+├── utils/          Small pure helpers
+├── App.tsx         Site shell: header, page area, footer
 └── main.tsx        Entry point
 ```
+
+Dependencies only point downwards: `pages` -> `sections` -> `components` -> `hooks` / `lib` /
+`utils`. Components never import from `sections`, and sections never import from each other.
+
+## Adding new functionality
+
+- **A new page:** create `src/pages/XPage.tsx` that composes sections, then render it inside
+  `<main>` in `App.tsx` (put a router around it when there is more than one page).
+- **A new landing section:** create `src/sections/X/` with `X.tsx`, `X.module.css` and a plain
+  `.ts` data file for its copy, then add it to `HomePage.tsx`.
+- **A feature with its own logic** (forms, login, API calls, dashboards): create
+  `src/features/<name>/` holding its `components/`, `hooks/`, `api/` and `types.ts`, and let
+  pages or sections import from it. Keep anything reusable across features in `components/`,
+  `hooks/` or `utils/` instead.
+- **A reusable piece:** small and generic -> `components/ui`; page structure ->
+  `components/layout`; animation -> `components/motion`.
 
 ## Conventions
 
 - **Styling:** CSS Modules next to each component (`Component.module.css`). Colors and
   sizes come from the CSS variables in `src/styles/global.css`; do not hard-code them.
 - **Imports:** use the `@/` alias for anything under `src/`.
-- **Content vs. UI:** section copy lives in data files (`services.ts`, `destinations.ts`, ...)
-  so text can change without touching markup.
+- **Content vs. UI:** section copy lives in plain `.ts` data files (`services.ts`,
+  `destinations.ts`, `moments.ts`, ...) with no JSX, so text can change without touching markup.
+  Use `<Lines lines={[...]} />` when a heading needs line breaks.
 - **Images:** add files to `public/images`, register them in `src/data/images.ts` with
   meaningful `alt` text, and add the credit to `public/images/CREDITS.md`.
 - **Motion:** always import GSAP from `@/lib/gsap` (it registers the plugins), and wrap

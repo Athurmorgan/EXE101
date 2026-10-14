@@ -1,8 +1,8 @@
 import type { IconName } from '@/components/ui/Icon';
 import { IconBadge } from '@/components/ui/IconBadge';
-import { Reveal } from '@/components/ui/Reveal';
-import { Section } from '@/components/ui/Section';
-import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Reveal } from '@/components/motion/Reveal';
+import { Section } from '@/components/layout/Section';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 import styles from './Trust.module.css';
 
 interface Guarantee {
@@ -13,7 +13,7 @@ interface Guarantee {
 
 const GUARANTEES: readonly Guarantee[] = [
   {
-    title: 'Verified by VietGo',
+    title: 'Verified by vivivu',
     description: 'Drivers, stays and merchants pass ongoing reviews.',
     icon: 'shield',
   },

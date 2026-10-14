@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { Button } from '@/components/ui/Button';
 import { ButtonGroup } from '@/components/ui/ButtonGroup';
-import { Container } from '@/components/ui/Container';
+import { Container } from '@/components/layout/Container';
 import { Eyebrow } from '@/components/ui/Eyebrow';
-import { ParallaxLayer } from '@/components/ui/ParallaxLayer';
-import { Reveal } from '@/components/ui/Reveal';
-import { TextReveal } from '@/components/ui/TextReveal';
+import { ParallaxLayer } from '@/components/motion/ParallaxLayer';
+import { Reveal } from '@/components/motion/Reveal';
+import { TextReveal } from '@/components/motion/TextReveal';
 import { useScrolledPast } from '@/hooks/useScrolledPast';
 import { gsap, MOTION_OK, useGSAP } from '@/lib/gsap';
 import styles from './Hero.module.css';
@@ -67,17 +67,17 @@ export function Hero() {
           />
 
           <Reveal as="p" delay={700} className={styles.sub}>
-            Meet people. Find phở. Book a room. Catch a ride. Pay with confidence. VietGo moves with
+            Meet people. Find phở. Book a room. Catch a ride. Pay with confidence. vivivu moves with
             your day—from first light to late night.
           </Reveal>
 
           <Reveal delay={850}>
             <ButtonGroup>
-              <Button href="#download" variant="white" leadingIcon="apple" withArrow>
-                Download for iOS
+              <Button href="/app/discover" variant="white" withArrow>
+                Explore places
               </Button>
-              <Button href="#download" variant="red" leadingIcon="android" withArrow>
-                Get it on Android
+              <Button href="/app/trips/new" variant="red" withArrow>
+                Plan a trip with AI
               </Button>
             </ButtonGroup>
           </Reveal>

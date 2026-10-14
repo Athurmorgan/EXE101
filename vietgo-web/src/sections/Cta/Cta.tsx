@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/Button';
 import { ButtonGroup } from '@/components/ui/ButtonGroup';
-import { Container } from '@/components/ui/Container';
+import { Container } from '@/components/layout/Container';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Lead } from '@/components/ui/Lead';
-import { Reveal } from '@/components/ui/Reveal';
+import { Reveal } from '@/components/motion/Reveal';
 import styles from './Cta.module.css';
 import { PhoneMockup } from './PhoneMockup';
 
@@ -12,7 +12,7 @@ export function Cta() {
     <section id="download" className={styles.cta}>
       <Container className={styles.inner}>
         <Reveal>
-          <Eyebrow tone="light">One Vietnam. One VietGo.</Eyebrow>
+          <Eyebrow tone="light">One Vietnam. One vivivu.</Eyebrow>
           <h2>
             Carry the whole
             <br />
@@ -21,14 +21,14 @@ export function Cta() {
             pocket.
           </h2>
           <Lead tone="light">
-            Download VietGo and make every connection, journey and payment feel beautifully simple.
+            Open vivivu and make every place, plan and journey across Vietnam feel beautifully simple.
           </Lead>
           <ButtonGroup>
-            <Button href="#" variant="white" leadingIcon="apple" withArrow>
-              Download for iOS
+            <Button href="/app/discover" variant="white" withArrow>
+              Start exploring
             </Button>
-            <Button href="#" variant="dark" leadingIcon="android" withArrow>
-              Get it on Android
+            <Button href="/app/register" variant="dark" withArrow>
+              Create a free account
             </Button>
           </ButtonGroup>
         </Reveal>

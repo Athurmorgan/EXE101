@@ -21,7 +21,7 @@ const FEED_ITEMS: readonly FeedItem[] = [
 
 const PLAN_ITEMS: readonly PlanItem[] = [
   { time: '19:40', title: 'Table for 4 · Bếp Mẹ Ỉn', meta: 'Confirmed' },
-  { time: '20:30', title: 'Split bill · 4 × 185.000₫', meta: 'Paid with VietGo Wallet' },
+  { time: '20:30', title: 'Split bill · 4 × 185.000₫', meta: 'Paid with vivivu Wallet' },
   { time: '21:15', title: 'Ride to Nhà Hát Thành Phố', meta: 'Driver arrives in 3 min' },
   { time: '21:45', title: 'Live show · 2 tickets', meta: 'Row C, seats 12–13' },
 ];

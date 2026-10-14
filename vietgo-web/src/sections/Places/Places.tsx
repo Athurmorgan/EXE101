@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { CurtainReveal } from '@/components/ui/CurtainReveal';
+import { CurtainReveal } from '@/components/motion/CurtainReveal';
 import { Icon } from '@/components/ui/Icon';
 import { Image } from '@/components/ui/Image';
-import { Reveal } from '@/components/ui/Reveal';
-import { Section } from '@/components/ui/Section';
-import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Reveal } from '@/components/motion/Reveal';
+import { Section } from '@/components/layout/Section';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 import { cx } from '@/utils/cx';
 import { DESTINATIONS } from './destinations';
 import styles from './Places.module.css';
@@ -36,7 +36,7 @@ export function Places() {
               onMouseEnter={() => setActiveIndex(index)}
               onFocus={() => setActiveIndex(index)}
             >
-              <a href="#download" className={styles.link}>
+              <a href="/app/discover" className={styles.link}>
                 <CurtainReveal delay={index * 110} className={styles.photoFrame}>
                   <Image image={image} decorative className={styles.photo} />
                 </CurtainReveal>
