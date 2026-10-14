@@ -1,87 +1,34 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, MailCheck } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { register, resendVerification, verifyEmail } from '@/lib/api/auth';
+import { useRegistration } from '@/hooks/useRegistration';
+import { hasErrors, validateRegistration } from '@/lib/validation';
 import { AuthLayout } from '@/components/app-layout/AuthLayout';
 import { Input } from '@/components/app-ui/Input';
 import { Button } from '@/components/app-ui/Button';
 import { Alert } from '@/components/app-ui/Alert';
 
-// Mirrors the BE's RegisterDto rules (packages/shared: PASSWORD_MIN_LENGTH = 8,
-// must contain a letter and a digit) so users see the error before submitting.
-function passwordProblem(password: string): string | null {
-  if (password.length < 8) return 'Use at least 8 characters.';
-  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) return 'Include at least one letter and one number.';
-  return null;
-}
-
-function messageOf(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
-}
-
-/**
- * Two steps, matching the BE flow: register (account is PENDING) → enter the
- * 6-digit code → verified, then sign in with the same credentials.
- */
 export function RegisterPage() {
-  const { login } = useAuth();
   const navigate = useNavigate();
+  const { step, code, setCode, busy, error, notice, submitDetails, verify, resend } = useRegistration();
 
-  const [step, setStep] = useState<'details' | 'verify'>('details');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [code, setCode] = useState('');
   const [touched, setTouched] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
 
-  const pwProblem = passwordProblem(password);
+  const errors = touched ? validateRegistration({ fullName, email, password }) : {};
 
   async function onRegister(e: FormEvent) {
     e.preventDefault();
     setTouched(true);
-    if (pwProblem || !fullName.trim() || !email) return;
-
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await register({ fullName: fullName.trim(), email, password });
-      // Dev only: the BE returns the code so the flow can be tested without an inbox.
-      if (result.devVerificationCode) setCode(result.devVerificationCode);
-      setStep('verify');
-    } catch (err) {
-      setError(messageOf(err, 'Could not create your account.'));
-    } finally {
-      setBusy(false);
-    }
+    if (hasErrors(validateRegistration({ fullName, email, password }))) return;
+    await submitDetails({ fullName: fullName.trim(), email, password });
   }
 
   async function onVerify(e: FormEvent) {
     e.preventDefault();
-    setBusy(true);
-    setError(null);
-    try {
-      await verifyEmail(email, code);
-      await login(email, password);
-      navigate('/app/discover', { replace: true });
-    } catch (err) {
-      setError(messageOf(err, 'That code didn’t work.'));
-      setBusy(false);
-    }
-  }
-
-  async function onResend() {
-    setError(null);
-    try {
-      const result = await resendVerification(email);
-      if (result.devVerificationCode) setCode(result.devVerificationCode);
-      setNotice('A new code is on its way.');
-    } catch (err) {
-      setError(messageOf(err, 'Could not resend the code.'));
-    }
+    if (await verify()) navigate('/app/discover', { replace: true });
   }
 
   if (step === 'verify') {
@@ -114,7 +61,7 @@ export function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-muted">
           Didn’t get it?{' '}
-          <button type="button" onClick={onResend} className="font-medium text-ink underline underline-offset-4">
+          <button type="button" onClick={() => void resend()} className="font-medium text-ink underline underline-offset-4">
             Send a new code
           </button>
         </p>
@@ -133,7 +80,7 @@ export function RegisterPage() {
           autoComplete="name"
           value={fullName}
           onChange={(e) => setFullName(e.target.value)}
-          error={touched && !fullName.trim() ? 'Tell us what to call you.' : undefined}
+          error={errors.fullName}
         />
         <Input
           label="Email"
@@ -141,7 +88,7 @@ export function RegisterPage() {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          error={touched && !email ? 'Enter your email.' : undefined}
+          error={errors.email}
         />
         <Input
           label="Password"
@@ -150,7 +97,7 @@ export function RegisterPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           hint="At least 8 characters, with a letter and a number."
-          error={touched && pwProblem ? pwProblem : undefined}
+          error={errors.password}
         />
         {error && <Alert>{error}</Alert>}
         <Button type="submit" size="lg" disabled={busy} className="mt-1 w-full">

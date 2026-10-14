@@ -1,18 +1,7 @@
 import { useState } from 'react';
 import { Loader2, Users } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAsync } from '@/hooks/useAsync';
-import {
-  deleteUser,
-  forceLogout,
-  listUsers,
-  restoreUser,
-  suspendUser,
-  unsuspendUser,
-  updateRole,
-  type UserQuery,
-} from '@/lib/api/admin';
-import { errorMessage } from '@/lib/api/client';
+import { useAdminUsers, useUserActions } from '@/hooks/useAdminUsers';
 import { formatDate, initials } from '@/lib/format';
 import type { AdminUser, Role, UserStatus } from '@/types/api';
 import { cn } from '@/lib/cn';
@@ -34,13 +23,7 @@ const STATUS_TONE: Record<string, string> = {
 };
 
 export function UsersPanel() {
-  const [query, setQuery] = useState<UserQuery>({ page: 1, limit: 20 });
-  const { data, loading, error, reload } = useAsync(() => listUsers(query), [JSON.stringify(query)]);
-  const meta = data?.meta;
-
-  function patch(next: Partial<UserQuery>) {
-    setQuery((q) => ({ ...q, page: 1, ...next }));
-  }
+  const { query, users, meta, loaded, loading, error, reload, filter: patch, goToPage } = useAdminUsers();
 
   return (
     <div>
@@ -85,17 +68,17 @@ export function UsersPanel() {
 
       {error && <Alert className="mt-6">{error}</Alert>}
 
-      {loading && !data ? (
+      {loading && !loaded ? (
         <div className="mt-6 space-y-3">
           {[0, 1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-20" />
           ))}
         </div>
-      ) : !data || data.data.length === 0 ? (
+      ) : users.length === 0 ? (
         <EmptyState icon={Users} title="No users match" className="mt-6" />
       ) : (
         <ul className={cn('mt-6 divide-y divide-ink/10 border-y border-ink/10', loading && 'opacity-60')}>
-          {data.data.map((u) => (
+          {users.map((u) => (
             <UserRow key={u.id} user={u} onChanged={reload} />
           ))}
         </ul>
@@ -107,7 +90,7 @@ export function UsersPanel() {
             variant="outline"
             size="sm"
             disabled={!meta.hasPrevPage}
-            onClick={() => setQuery((q) => ({ ...q, page: (q.page ?? 1) - 1 }))}
+            onClick={() => goToPage(meta.page - 1)}
           >
             Previous
           </Button>
@@ -118,7 +101,7 @@ export function UsersPanel() {
             variant="outline"
             size="sm"
             disabled={!meta.hasNextPage}
-            onClick={() => setQuery((q) => ({ ...q, page: (q.page ?? 1) + 1 }))}
+            onClick={() => goToPage(meta.page + 1)}
           >
             Next
           </Button>
@@ -134,26 +117,14 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
   const deleted = Boolean(user.deletedAt) || user.status === 'DELETED';
   const suspended = user.status === 'SUSPENDED';
 
-  const [busy, setBusy] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const actions = useUserActions(user.id, onChanged);
+  const { busy, error, notice } = actions;
   const [suspending, setSuspending] = useState(false);
   const [reason, setReason] = useState('');
 
-  async function run(label: string, action: () => Promise<unknown>, success?: string) {
-    setBusy(label);
-    setError(null);
-    setNotice(null);
-    try {
-      await action();
-      if (success) setNotice(success);
-      setSuspending(false);
-      onChanged();
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy(null);
-    }
+  /** Runs an action and closes the suspend form once it succeeds. */
+  async function run(action: () => Promise<boolean>) {
+    if (await action()) setSuspending(false);
   }
 
   return (
@@ -186,7 +157,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
             aria-label={`Role for ${user.fullName}`}
             value={user.role}
             disabled={isMe || deleted || busy !== null}
-            onChange={(e) => run('role', () => updateRole(user.id, e.target.value as Role), `Role changed to ${e.target.value}.`)}
+            onChange={(e) => run(() => actions.changeRole(e.target.value as Role))}
             className="h-9 border border-ink/15 bg-white px-2 text-xs font-medium text-ink disabled:opacity-50"
           >
             {ROLES.map((r) => (
@@ -197,13 +168,13 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
           </select>
 
           {deleted ? (
-            <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run('restore', () => restoreUser(user.id))}>
+            <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run(actions.restore)}>
               Restore
             </Button>
           ) : (
             <>
               {suspended ? (
-                <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run('unsuspend', () => unsuspendUser(user.id))}>
+                <Button size="sm" variant="outline" disabled={busy !== null} onClick={() => run(actions.unsuspend)}>
                   Unsuspend
                 </Button>
               ) : (
@@ -215,9 +186,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
                 size="sm"
                 variant="ghost"
                 disabled={busy !== null}
-                onClick={() =>
-                  run('logout', () => forceLogout(user.id), 'Signed out of every session.')
-                }
+                onClick={() => run(actions.forceLogout)}
               >
                 Force sign-out
               </Button>
@@ -227,7 +196,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
                 className="text-red hover:bg-red/5"
                 disabled={isMe || busy !== null}
                 onClick={() => {
-                  if (window.confirm(`Delete ${user.email}? You can restore it later.`)) void run('delete', () => deleteUser(user.id));
+                  if (window.confirm(`Delete ${user.email}? You can restore it later.`)) void run(actions.remove);
                 }}
               >
                 Delete
@@ -251,7 +220,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
             <Button variant="ghost" onClick={() => setSuspending(false)}>
               Cancel
             </Button>
-            <Button variant="primary" disabled={busy !== null} onClick={() => run('suspend', () => suspendUser(user.id, reason.trim()))}>
+            <Button variant="primary" disabled={busy !== null} onClick={() => run(() => actions.suspend(reason))}>
               Suspend
             </Button>
           </div>

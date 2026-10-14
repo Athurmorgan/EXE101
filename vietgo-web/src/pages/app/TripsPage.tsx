@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Map, Plus } from 'lucide-react';
-import { useAsync } from '@/hooks/useAsync';
-import { listItineraries } from '@/lib/api/itineraries';
+import { useTrips } from '@/hooks/useTrips';
 import { formatDate } from '@/lib/format';
-import type { Itinerary } from '@/types/api';
+import { tripStatusLabel, tripTitle } from '@/lib/itinerary';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { EmptyState } from '@/components/app-ui/EmptyState';
@@ -12,14 +11,8 @@ import { Badge } from '@/components/app-ui/Badge';
 import { buttonClasses } from '@/components/app-ui/Button';
 import { Skeleton } from '@/components/app-ui/Skeleton';
 
-function tripStatusLabel(trip: Itinerary): string {
-  if (trip.status === 'APPLIED') return `Plan ${trip.selectedOption ?? ''} chosen`.trim();
-  if (trip.stops && trip.stops.length > 0) return 'Pick a plan';
-  return 'Draft';
-}
-
 export function TripsPage() {
-  const { data: trips = [], loading, error } = useAsync(listItineraries, []);
+  const { trips, loading, error } = useTrips();
 
   return (
     <>
@@ -71,7 +64,7 @@ export function TripsPage() {
                     </Badge>
                   </div>
                   <h2 className="mt-3 font-serif text-2xl leading-snug text-ink">
-                    {trip.title || `${trip.days} days in ${trip.region?.name ?? 'Vietnam'}`}
+                    {tripTitle(trip)}
                   </h2>
                   <p className="mt-2 text-sm text-muted">
                     {formatDate(trip.startDate)} – {formatDate(trip.endDate)} · {trip.days}{' '}

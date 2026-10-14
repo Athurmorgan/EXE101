@@ -1,14 +1,12 @@
 import { Link } from 'react-router-dom';
 import { PenLine } from 'lucide-react';
-import { useAsync } from '@/hooks/useAsync';
-import { listPosts } from '@/lib/api/community';
+import { usePosts } from '@/hooks/usePosts';
 import { PostCard } from './PostCard';
 import { SectionLabel } from './SectionLabel';
 
 /** Approved community stories tagged with this place, plus a nudge to write one. */
 export function PlaceStories({ placeId, placeName }: { placeId: string; placeName: string }) {
-  const { data } = useAsync(() => listPosts({ placeId, limit: 3 }), [placeId]);
-  const posts = data?.data ?? [];
+  const { posts } = usePosts({ placeId, limit: 3 });
   const writeUrl = `/app/community/new?placeId=${placeId}&placeName=${encodeURIComponent(placeName)}`;
 
   return (

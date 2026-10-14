@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Newspaper, PenLine } from 'lucide-react';
-import { useAsync } from '@/hooks/useAsync';
-import { listPosts } from '@/lib/api/community';
+import { usePosts } from '@/hooks/usePosts';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { PostCard } from '@/components/app-ui/PostCard';
@@ -17,12 +16,7 @@ const PAGE_SIZE = 10;
 export function CommunityPage() {
   const [regionId, setRegionId] = useState('');
   const [page, setPage] = useState(1);
-  const { data, loading, error } = useAsync(
-    () => listPosts({ page, limit: PAGE_SIZE, regionId: regionId || undefined }),
-    [page, regionId],
-  );
-  const posts = data?.data ?? [];
-  const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / PAGE_SIZE));
+  const { posts, total, totalPages, loaded, loading, error } = usePosts({ page, limit: PAGE_SIZE, regionId });
 
   return (
     <>
@@ -49,9 +43,9 @@ export function CommunityPage() {
             emptyLabel="All regions"
             containerClassName="w-full sm:max-w-xs"
           />
-          {data && !loading && (
+          {loaded && !loading && (
             <span className="text-sm text-muted" aria-live="polite">
-              {data.total} {data.total === 1 ? 'story' : 'stories'}
+              {total} {total === 1 ? 'story' : 'stories'}
             </span>
           )}
         </div>

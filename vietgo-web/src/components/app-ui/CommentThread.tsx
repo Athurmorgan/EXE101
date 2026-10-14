@@ -2,9 +2,9 @@ import { useState, type FormEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { CornerDownRight, Loader2, MessageSquare, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { useAsync } from '@/hooks/useAsync';
-import { createComment, deleteComment, listComments, type CommentTarget } from '@/lib/api/community';
-import { errorMessage } from '@/lib/api/client';
+import { useComments } from '@/hooks/useComments';
+import { useMutation } from '@/hooks/useMutation';
+import type { CommentTarget } from '@/lib/api/community';
 import { initials, timeAgo } from '@/lib/format';
 import type { Comment } from '@/types/api';
 import { Alert } from './Alert';
@@ -19,8 +19,7 @@ import { Skeleton } from './Skeleton';
 export function CommentThread({ target }: { target: CommentTarget }) {
   const { status } = useAuth();
   const location = useLocation();
-  const { data: comments = [], loading, error, reload } = useAsync(() => listComments(target), [target.kind, target.id]);
-  const total = comments.reduce((sum, c) => sum + 1 + (c.replies?.length ?? 0), 0);
+  const { comments, total, loading, error, add, remove } = useComments(target);
 
   return (
     <section aria-labelledby="comments-heading">
@@ -30,7 +29,7 @@ export function CommentThread({ target }: { target: CommentTarget }) {
 
       <div className="mt-6">
         {status === 'authenticated' ? (
-          <CommentForm target={target} onPosted={reload} />
+          <CommentForm onSubmit={(content) => add(content)} />
         ) : (
           <p className="border border-ink/10 bg-white px-4 py-3 text-sm text-muted">
             <Link to="/app/login" state={{ from: location }} className="font-medium text-ink underline underline-offset-4">
@@ -63,12 +62,12 @@ export function CommentThread({ target }: { target: CommentTarget }) {
         <ol className="mt-8 divide-y divide-ink/10 border-t border-ink/10">
           {comments.map((comment) => (
             <li key={comment.id} className="py-6">
-              <CommentItem comment={comment} target={target} onChange={reload} />
+              <CommentItem comment={comment} onReply={add} onDelete={remove} />
               {comment.replies && comment.replies.length > 0 && (
                 <ol className="mt-5 space-y-5 border-l border-ink/10 pl-5 sm:ml-12">
                   {comment.replies.map((reply) => (
                     <li key={reply.id}>
-                      <CommentItem comment={reply} target={target} onChange={reload} isReply />
+                      <CommentItem comment={reply} onDelete={remove} />
                     </li>
                   ))}
                 </ol>
@@ -81,33 +80,23 @@ export function CommentThread({ target }: { target: CommentTarget }) {
   );
 }
 
+/** Top-level comments get `onReply`; replies don't (one level of nesting). */
 function CommentItem({
   comment,
-  target,
-  onChange,
-  isReply = false,
+  onReply,
+  onDelete,
 }: {
   comment: Comment;
-  target: CommentTarget;
-  onChange: () => void;
-  isReply?: boolean;
+  onReply?: (content: string, parentId: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   const { user } = useAuth();
   const [replying, setReplying] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const remove = useMutation(() => onDelete(comment.id));
   const canDelete = user && (user.id === comment.authorId || user.role === 'ADMIN');
 
-  async function onDelete() {
-    if (!window.confirm('Delete this comment?')) return;
-    setDeleting(true);
-    try {
-      await deleteComment(comment.id);
-      onChange();
-    } catch (err) {
-      setError(errorMessage(err));
-      setDeleting(false);
-    }
+  function handleDelete() {
+    if (window.confirm('Delete this comment?')) void remove.run();
   }
 
   return (
@@ -128,7 +117,7 @@ function CommentItem({
         <p className="mt-1.5 text-[15px] leading-relaxed whitespace-pre-line text-ink">{comment.content}</p>
 
         <div className="mt-2 flex gap-4 text-xs">
-          {!isReply && user && (
+          {onReply && user && (
             <button
               type="button"
               onClick={() => setReplying((v) => !v)}
@@ -140,25 +129,23 @@ function CommentItem({
           {canDelete && (
             <button
               type="button"
-              onClick={onDelete}
-              disabled={deleting}
+              onClick={handleDelete}
+              disabled={remove.busy}
               className="inline-flex items-center gap-1 text-muted hover:text-red disabled:opacity-50"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden /> Delete
             </button>
           )}
         </div>
-        {error && <p className="mt-2 text-xs text-red">{error}</p>}
+        {remove.error && <p className="mt-2 text-xs text-red">{remove.error}</p>}
 
-        {replying && (
+        {replying && onReply && (
           <div className="mt-4">
             <CommentForm
-              target={target}
-              parentId={comment.id}
-              compact
-              onPosted={() => {
+              isReply
+              onSubmit={async (content) => {
+                await onReply(content, comment.id);
                 setReplying(false);
-                onChange();
               }}
             />
           </div>
@@ -169,52 +156,37 @@ function CommentItem({
 }
 
 function CommentForm({
-  target,
-  parentId,
-  compact = false,
-  onPosted,
+  isReply = false,
+  onSubmit,
 }: {
-  target: CommentTarget;
-  parentId?: string;
-  compact?: boolean;
-  onPosted: () => void;
+  isReply?: boolean;
+  onSubmit: (content: string) => Promise<void>;
 }) {
   const [content, setContent] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const post = useMutation(onSubmit, 'Could not post your comment.');
 
-  async function onSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const text = content.trim();
     if (!text) return;
-    setSaving(true);
-    setError(null);
-    try {
-      await createComment(target, text, parentId);
-      setContent('');
-      onPosted();
-    } catch (err) {
-      setError(errorMessage(err, 'Could not post your comment.'));
-    } finally {
-      setSaving(false);
-    }
+    if ((await post.run(text)).ok) setContent('');
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-3">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <Textarea
-        aria-label={parentId ? 'Write a reply' : 'Write a comment'}
-        placeholder={parentId ? 'Write a reply…' : 'Share a tip, a warning, or what to order…'}
-        rows={compact ? 2 : 3}
+        aria-label={isReply ? 'Write a reply' : 'Write a comment'}
+        placeholder={isReply ? 'Write a reply…' : 'Share a tip, a warning, or what to order…'}
+        rows={isReply ? 2 : 3}
         maxLength={2000}
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        error={error ?? undefined}
+        error={post.error ?? undefined}
       />
       <div className="flex justify-end">
-        <Button type="submit" variant="dark" size={compact ? 'sm' : 'md'} disabled={saving || !content.trim()}>
-          {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
-          {parentId ? 'Reply' : 'Post comment'}
+        <Button type="submit" variant="dark" size={isReply ? 'sm' : 'md'} disabled={post.busy || !content.trim()}>
+          {post.busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+          {isReply ? 'Reply' : 'Post comment'}
         </Button>
       </div>
     </form>

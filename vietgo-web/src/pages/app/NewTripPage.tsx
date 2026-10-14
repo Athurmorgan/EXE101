@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Loader2, Sparkles } from 'lucide-react';
-import { createItinerary, generateOptions } from '@/lib/api/itineraries';
-import { errorMessage } from '@/lib/api/client';
+import { useCreateTrip } from '@/hooks/useTrips';
 import { isoDate } from '@/lib/format';
+import { defaultTripDates, tripLength, validateTrip } from '@/lib/itinerary';
+import { hasErrors, type FieldErrors } from '@/lib/validation';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { Input } from '@/components/app-ui/Input';
@@ -11,61 +12,35 @@ import { RegionSelect } from '@/components/app-ui/RegionSelect';
 import { Alert } from '@/components/app-ui/Alert';
 import { Button, buttonClasses } from '@/components/app-ui/Button';
 
-const MAX_DAYS = 14;
-const DAY_MS = 86_400_000;
-
-function addDays(date: Date, days: number): Date {
-  return new Date(date.getTime() + days * DAY_MS);
-}
-
 export function NewTripPage() {
   const navigate = useNavigate();
   const today = isoDate(new Date());
   const [regionId, setRegionId] = useState('');
-  const [startDate, setStartDate] = useState(isoDate(addDays(new Date(), 7)));
-  const [endDate, setEndDate] = useState(isoDate(addDays(new Date(), 9)));
+  const [startDate, setStartDate] = useState(() => defaultTripDates().startDate);
+  const [endDate, setEndDate] = useState(() => defaultTripDates().endDate);
   const [title, setTitle] = useState('');
   const [budget, setBudget] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [step, setStep] = useState<'idle' | 'creating' | 'generating'>('idle');
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const { step, busy, error: formError, create } = useCreateTrip();
 
-  const days = Math.round((new Date(endDate).getTime() - new Date(startDate).getTime()) / DAY_MS) + 1;
+  const days = tripLength(startDate, endDate);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const next: Record<string, string> = {};
-    if (!regionId) next.regionId = 'Where are you going?';
-    if (!startDate) next.startDate = 'Pick a start date.';
-    if (!endDate || days < 1) next.endDate = 'The trip has to end on or after it starts.';
-    else if (days > MAX_DAYS) next.endDate = `Keep it to ${MAX_DAYS} days or fewer.`;
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
+    const found = validateTrip({ regionId, startDate, endDate });
+    setErrors(found);
+    if (hasErrors(found)) return;
 
-    setFormError(null);
-    setStep('creating');
-    let tripId: string | null = null;
-    try {
-      const trip = await createItinerary({
-        regionId,
-        startDate,
-        endDate,
-        title: title.trim() || undefined,
-        budgetVnd: budget ? Number(budget) : undefined,
-      });
-      tripId = trip.id;
-      setStep('generating');
-      await generateOptions(trip.id);
-      navigate(`/app/trips/${trip.id}`, { replace: true });
-    } catch (err) {
-      // The trip exists even if the AI step failed — let the user retry from its page.
-      if (tripId) navigate(`/app/trips/${tripId}`, { replace: true, state: { generateError: errorMessage(err) } });
-      else setFormError(errorMessage(err, 'Could not create the trip.'));
-      setStep('idle');
-    }
+    const result = await create({
+      regionId,
+      startDate,
+      endDate,
+      title: title.trim() || undefined,
+      budgetVnd: budget ? Number(budget) : undefined,
+    });
+    // The trip exists even if the AI step failed — its page lets the user retry.
+    if (result) navigate(`/app/trips/${result.tripId}`, { replace: true, state: { generateError: result.generateError } });
   }
-
-  const busy = step !== 'idle';
 
   return (
     <>

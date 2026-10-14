@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Bookmark, BookmarkCheck, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { addToShortlist } from '@/lib/api/shortlist';
+import { useSaveToShortlist } from '@/hooks/useSaveToShortlist';
 import { Button } from './Button';
 
 /**
@@ -13,9 +12,9 @@ export function ShortlistButton({ placeId, className }: { placeId: string; class
   const { status } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [state, setState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const { state, save } = useSaveToShortlist(placeId);
 
-  async function onClick() {
+  function onClick() {
     if (state === 'saved') {
       navigate('/app/shortlist');
       return;
@@ -24,13 +23,7 @@ export function ShortlistButton({ placeId, className }: { placeId: string; class
       navigate('/app/login', { state: { from: location } });
       return;
     }
-    setState('saving');
-    try {
-      await addToShortlist(placeId);
-      setState('saved');
-    } catch {
-      setState('error');
-    }
+    void save();
   }
 
   return (

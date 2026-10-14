@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { CheckCircle2, Loader2, MapPin } from 'lucide-react';
-import { createPost } from '@/lib/api/community';
-import { errorMessage } from '@/lib/api/client';
+import { useCreatePost } from '@/hooks/usePosts';
+import { POST_LIMITS, hasErrors, splitLines, validatePost, type FieldErrors } from '@/lib/validation';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { Input } from '@/components/app-ui/Input';
@@ -11,20 +11,6 @@ import { RegionSelect } from '@/components/app-ui/RegionSelect';
 import { Alert } from '@/components/app-ui/Alert';
 import { Button, buttonClasses } from '@/components/app-ui/Button';
 import { EmptyState } from '@/components/app-ui/EmptyState';
-
-/** Same limits as the BE's CreatePostDto. */
-const TITLE_MIN = 5;
-const TITLE_MAX = 200;
-const CONTENT_MIN = 10;
-const CONTENT_MAX = 5000;
-
-function isUrl(value: string): boolean {
-  try {
-    return ['http:', 'https:'].includes(new URL(value).protocol);
-  } catch {
-    return false;
-  }
-}
 
 export function NewPostPage() {
   const [params] = useSearchParams();
@@ -35,41 +21,25 @@ export function NewPostPage() {
   const [content, setContent] = useState('');
   const [regionId, setRegionId] = useState('');
   const [imageUrls, setImageUrls] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
   const [done, setDone] = useState(false);
+  const publish = useCreatePost();
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const urls = imageUrls
-      .split('\n')
-      .map((u) => u.trim())
-      .filter(Boolean);
+    const urls = splitLines(imageUrls);
+    const found = validatePost({ title, content, imageUrls: urls });
+    setErrors(found);
+    if (hasErrors(found)) return;
 
-    const next: Record<string, string> = {};
-    if (title.trim().length < TITLE_MIN) next.title = `At least ${TITLE_MIN} characters.`;
-    if (content.trim().length < CONTENT_MIN) next.content = `At least ${CONTENT_MIN} characters.`;
-    if (urls.some((u) => !isUrl(u))) next.images = 'One link per line, each starting with http(s)://';
-    setErrors(next);
-    if (Object.keys(next).length > 0) return;
-
-    setSaving(true);
-    setFormError(null);
-    try {
-      await createPost({
-        title: title.trim(),
-        content: content.trim(),
-        placeId,
-        regionId: regionId || undefined,
-        media: urls.length ? urls.map((url) => ({ url, type: 'image' as const })) : undefined,
-      });
-      setDone(true);
-    } catch (err) {
-      setFormError(errorMessage(err, 'Could not publish your story.'));
-    } finally {
-      setSaving(false);
-    }
+    const result = await publish.run({
+      title: title.trim(),
+      content: content.trim(),
+      placeId,
+      regionId: regionId || undefined,
+      media: urls.length ? urls.map((url) => ({ url, type: 'image' as const })) : undefined,
+    });
+    if (result.ok) setDone(true);
   }
 
   if (done) {
@@ -106,7 +76,7 @@ export function NewPostPage() {
       />
       <Container className="max-w-3xl py-10 sm:py-12">
         <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
-          {formError && <Alert>{formError}</Alert>}
+          {publish.error && <Alert>{publish.error}</Alert>}
 
           {placeId && (
             <p className="flex items-center gap-2 border border-forest/20 bg-forest/5 px-4 py-3 text-sm text-forest">
@@ -117,7 +87,7 @@ export function NewPostPage() {
           <Input
             label="Title"
             value={title}
-            maxLength={TITLE_MAX}
+            maxLength={POST_LIMITS.titleMax}
             onChange={(e) => setTitle(e.target.value)}
             error={errors.title}
             placeholder="The noodle stall nobody told me about"
@@ -126,10 +96,10 @@ export function NewPostPage() {
             label="Your story"
             rows={10}
             value={content}
-            maxLength={CONTENT_MAX}
+            maxLength={POST_LIMITS.contentMax}
             onChange={(e) => setContent(e.target.value)}
             error={errors.content}
-            hint={`${content.length} / ${CONTENT_MAX}`}
+            hint={`${content.length} / ${POST_LIMITS.contentMax}`}
           />
           {!placeId && (
             <RegionSelect
@@ -153,8 +123,8 @@ export function NewPostPage() {
             <Link to={placeId ? `/app/places/${placeId}` : '/app/community'} className={buttonClasses('ghost')}>
               Cancel
             </Link>
-            <Button type="submit" variant="dark" disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+            <Button type="submit" variant="dark" disabled={publish.busy}>
+              {publish.busy &&<Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
               Submit for review
             </Button>
           </div>

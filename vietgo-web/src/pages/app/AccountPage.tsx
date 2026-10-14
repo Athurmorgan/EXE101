@@ -2,21 +2,15 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { changePassword, logoutAll, updateProfile } from '@/lib/api/auth';
-import { errorMessage } from '@/lib/api/client';
+import { useChangePassword, useSignOutEverywhere, useUpdateProfile } from '@/hooks/useAccount';
 import { formatDate, initials } from '@/lib/format';
+import { hasErrors, validatePasswordChange, validateProfile, type FieldErrors } from '@/lib/validation';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { Input } from '@/components/app-ui/Input';
 import { Alert } from '@/components/app-ui/Alert';
 import { Badge } from '@/components/app-ui/Badge';
 import { Button } from '@/components/app-ui/Button';
-
-function passwordProblem(password: string): string | null {
-  if (password.length < 8) return 'Use at least 8 characters.';
-  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) return 'Include at least one letter and one number.';
-  return null;
-}
 
 function Panel({ title, lead, children }: { title: string; lead: string; children: ReactNode }) {
   return (
@@ -61,41 +55,41 @@ export function AccountPage() {
 }
 
 function ProfileForm() {
-  const { user, setUser } = useAuth();
+  const { user } = useAuth();
   const [fullName, setFullName] = useState(user?.fullName ?? '');
   const [dateOfBirth, setDateOfBirth] = useState(user?.dateOfBirth?.slice(0, 10) ?? '');
   const [address, setAddress] = useState(user?.address ?? '');
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<{ tone: 'success' | 'error'; text: string } | null>(null);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [saved, setSaved] = useState(false);
+  const save = useUpdateProfile();
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    if (fullName.trim().length < 2) {
-      setMessage({ tone: 'error', text: 'Your name needs at least 2 characters.' });
-      return;
-    }
-    setSaving(true);
-    setMessage(null);
-    try {
-      const updated = await updateProfile({
-        fullName: fullName.trim(),
-        dateOfBirth: dateOfBirth || undefined,
-        address: address.trim() || undefined,
-      });
-      setUser(updated);
-      setMessage({ tone: 'success', text: 'Profile saved.' });
-    } catch (err) {
-      setMessage({ tone: 'error', text: errorMessage(err, 'Could not save your profile.') });
-    } finally {
-      setSaving(false);
-    }
+    setSaved(false);
+    const found = validateProfile({ fullName });
+    setErrors(found);
+    if (hasErrors(found)) return;
+
+    const result = await save.run({
+      fullName: fullName.trim(),
+      dateOfBirth: dateOfBirth || undefined,
+      address: address.trim() || undefined,
+    });
+    setSaved(result.ok);
   }
 
   return (
     <Panel title="Profile" lead="How you appear on comments and stories.">
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
-        {message && <Alert tone={message.tone}>{message.text}</Alert>}
-        <Input label="Full name" value={fullName} onChange={(e) => setFullName(e.target.value)} autoComplete="name" />
+        {save.error && <Alert>{save.error}</Alert>}
+        {saved && <Alert tone="success">Profile saved.</Alert>}
+        <Input
+          label="Full name"
+          value={fullName}
+          onChange={(e) => setFullName(e.target.value)}
+          autoComplete="name"
+          error={errors.fullName}
+        />
         <Input label="Email" value={user?.email ?? ''} disabled hint="Email can't be changed." />
         <div className="grid gap-5 sm:grid-cols-2">
           <Input
@@ -107,8 +101,8 @@ function ProfileForm() {
           <Input label="City" value={address} onChange={(e) => setAddress(e.target.value)} autoComplete="address-level2" />
         </div>
         <div>
-          <Button type="submit" variant="dark" disabled={saving}>
-            {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+          <Button type="submit" variant="dark" disabled={save.busy}>
+            {save.busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Save profile
           </Button>
         </div>
@@ -118,14 +112,13 @@ function ProfileForm() {
 }
 
 function PasswordForm() {
-  const { user, clearSession } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [current, setCurrent] = useState('');
   const [next, setNext] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const change = useChangePassword();
 
   if (user?.authProvider === 'GOOGLE') {
     return (
@@ -137,32 +130,19 @@ function PasswordForm() {
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const found: Record<string, string> = {};
-    if (!current) found.current = 'Enter your current password.';
-    const problem = passwordProblem(next);
-    if (problem) found.next = problem;
-    else if (next === current) found.next = 'Pick a password you are not using now.';
-    if (confirm !== next) found.confirm = "Passwords don't match.";
+    const found = validatePasswordChange({ current, next, confirm });
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    if (hasErrors(found)) return;
 
-    setSaving(true);
-    setFormError(null);
-    try {
-      await changePassword(current, next);
-      // The BE revoked every session, this one included.
-      clearSession();
+    if ((await change.run(current, next)).ok) {
       navigate('/app/login', { replace: true, state: { notice: 'Password changed — sign in with your new password.' } });
-    } catch (err) {
-      setFormError(errorMessage(err, 'Could not change your password.'));
-      setSaving(false);
     }
   }
 
   return (
     <Panel title="Password" lead="Changing it signs you out everywhere, including here.">
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
-        {formError && <Alert>{formError}</Alert>}
+        {change.error && <Alert>{change.error}</Alert>}
         <Input
           type="password"
           label="Current password"
@@ -189,8 +169,8 @@ function PasswordForm() {
           error={errors.confirm}
         />
         <div>
-          <Button type="submit" variant="dark" disabled={saving}>
-            {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+          <Button type="submit" variant="dark" disabled={change.busy}>
+            {change.busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
             Change password
           </Button>
         </div>
@@ -200,29 +180,20 @@ function PasswordForm() {
 }
 
 function SessionsPanel() {
-  const { clearSession } = useAuth();
   const navigate = useNavigate();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const signOut = useSignOutEverywhere();
 
   async function onLogoutAll() {
-    setBusy(true);
-    setError(null);
-    try {
-      await logoutAll();
-      clearSession();
+    if ((await signOut.run()).ok) {
       navigate('/app/login', { replace: true, state: { notice: 'Signed out on every device.' } });
-    } catch (err) {
-      setError(errorMessage(err));
-      setBusy(false);
     }
   }
 
   return (
     <Panel title="Sessions" lead="Lost a phone or used a shared computer?">
-      {error && <Alert className="mb-5">{error}</Alert>}
-      <Button variant="outline" onClick={onLogoutAll} disabled={busy}>
-        {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+      {signOut.error && <Alert className="mb-5">{signOut.error}</Alert>}
+      <Button variant="outline" onClick={onLogoutAll} disabled={signOut.busy}>
+        {signOut.busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         Sign out on all devices
       </Button>
     </Panel>

@@ -1,10 +1,8 @@
-import { useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, Clock, Coffee, Loader2, MapPin, RefreshCw, Sparkles, Trash2, Utensils } from 'lucide-react';
-import { useAsync } from '@/hooks/useAsync';
-import { applyOption, deleteItinerary, generateOptions, getItinerary } from '@/lib/api/itineraries';
-import { errorMessage } from '@/lib/api/client';
+import { useTrip } from '@/hooks/useTrips';
 import { formatDate, formatVnd, mapsUrl, mealLabel } from '@/lib/format';
+import { addDays, tripTitle } from '@/lib/itinerary';
 import type { ItineraryStop } from '@/types/api';
 import { cn } from '@/lib/cn';
 import { Container } from '@/components/app-layout/Container';
@@ -14,75 +12,34 @@ import { Button } from '@/components/app-ui/Button';
 import { EmptyState } from '@/components/app-ui/EmptyState';
 import { Skeleton } from '@/components/app-ui/Skeleton';
 
-type Busy = 'generate' | 'apply' | 'delete' | null;
-
-/** option → day → stops, each level sorted. */
-function groupStops(stops: ItineraryStop[]): Map<number, Map<number, ItineraryStop[]>> {
-  const options = new Map<number, Map<number, ItineraryStop[]>>();
-  const sorted = [...stops].sort(
-    (a, b) => a.optionNumber - b.optionNumber || a.dayNumber - b.dayNumber || a.orderInDay - b.orderInDay,
-  );
-  for (const stop of sorted) {
-    const days = options.get(stop.optionNumber) ?? new Map<number, ItineraryStop[]>();
-    days.set(stop.dayNumber, [...(days.get(stop.dayNumber) ?? []), stop]);
-    options.set(stop.optionNumber, days);
-  }
-  return options;
-}
-
 export function TripDetailPage() {
   const { id = '' } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: trip, loading, error, reload } = useAsync(() => getItinerary(id), [id]);
-  const [picked, setPicked] = useState<number | null>(null);
-  const [busy, setBusy] = useState<Busy>(null);
-  const [actionError, setActionError] = useState<string | null>(
-    (location.state as { generateError?: string } | null)?.generateError ?? null,
-  );
+  const {
+    trip,
+    loading,
+    error,
+    applied,
+    optionNumbers,
+    current,
+    days,
+    summary,
+    busy,
+    actionError,
+    pick,
+    generate,
+    apply,
+    remove,
+  } = useTrip(id, (location.state as { generateError?: string } | null)?.generateError ?? null);
 
-  const options = useMemo(() => groupStops(trip?.stops ?? []), [trip?.stops]);
-  const optionNumbers = [...options.keys()];
-  const current = picked && options.has(picked) ? picked : (trip?.selectedOption ?? optionNumbers[0] ?? null);
-  const days = current ? options.get(current) : undefined;
-  const optionCost = days
-    ? [...days.values()].flat().reduce((sum, s) => sum + (s.estimatedCost ?? 0), 0)
-    : 0;
-  const applied = trip?.status === 'APPLIED';
+  const onGenerate = () => void generate();
+  const onApply = () => void apply();
 
-  async function run(kind: Exclude<Busy, null>, action: () => Promise<unknown>) {
-    setBusy(kind);
-    setActionError(null);
-    try {
-      await action();
-    } catch (err) {
-      setActionError(errorMessage(err));
-    } finally {
-      setBusy(null);
-    }
-  }
-
-  const onGenerate = () =>
-    run('generate', async () => {
-      await generateOptions(id);
-      setPicked(null);
-      reload();
-    });
-
-  const onApply = () =>
-    run('apply', async () => {
-      if (!current) return;
-      await applyOption(id, current);
-      reload();
-    });
-
-  const onDelete = () => {
+  async function onDelete() {
     if (!window.confirm('Delete this trip?')) return;
-    void run('delete', async () => {
-      await deleteItinerary(id);
-      navigate('/app/trips', { replace: true });
-    });
-  };
+    if (await remove()) navigate('/app/trips', { replace: true });
+  }
 
   return (
     <Container className="py-10 sm:py-14">
@@ -106,7 +63,7 @@ export function TripDetailPage() {
                 {trip.region?.name ?? 'Vietnam'} · {trip.days} {trip.days === 1 ? 'day' : 'days'}
               </p>
               <h1 className="mt-3 font-serif text-4xl leading-[1.05] tracking-tight text-ink sm:text-5xl">
-                {trip.title || `${trip.days} days in ${trip.region?.name ?? 'Vietnam'}`}
+                {tripTitle(trip)}
               </h1>
               <p className="mt-4 text-muted">
                 {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
@@ -159,7 +116,7 @@ export function TripDetailPage() {
                       role="tab"
                       type="button"
                       aria-selected={current === n}
-                      onClick={() => setPicked(n)}
+                      onClick={() => pick(n)}
                       className={cn(
                         'h-10 border px-4 text-sm font-medium transition-colors',
                         current === n
@@ -177,8 +134,8 @@ export function TripDetailPage() {
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   {applied ? <Badge>Your plan</Badge> : <span className="font-medium text-ink">Plan {current}</span>}
                   <span className="text-muted">
-                    {days ? [...days.values()].flat().length : 0} stops
-                    {optionCost > 0 && ` · about ${formatVnd(optionCost)} per person`}
+                    {summary.stops} stops
+                    {summary.cost > 0 && ` · about ${formatVnd(summary.cost)} per person`}
                   </span>
                 </div>
                 {!applied && (
@@ -203,7 +160,7 @@ export function TripDetailPage() {
                       <h2 className="flex items-baseline gap-3 border-b border-ink/10 pb-3">
                         <span className="font-serif text-2xl text-ink">Day {day}</span>
                         <span className="text-sm text-muted">
-                          {formatDate(new Date(new Date(trip.startDate).getTime() + (day - 1) * 86_400_000), {
+                          {formatDate(addDays(trip.startDate, day - 1), {
                             weekday: 'long',
                             day: 'numeric',
                             month: 'short',

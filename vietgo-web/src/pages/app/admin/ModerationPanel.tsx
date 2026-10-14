@@ -1,9 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Inbox, Loader2, MapPin, X } from 'lucide-react';
-import { useAsync } from '@/hooks/useAsync';
-import { moderate, placeQueue, postQueue } from '@/lib/api/admin';
-import { errorMessage } from '@/lib/api/client';
+import { useModerationQueues, type Decision as DecisionKind, type QueueKind as Kind } from '@/hooks/useModeration';
+import { useMutation } from '@/hooks/useMutation';
 import { categoryLabel, formatDate, mapsUrl } from '@/lib/format';
 import type { PendingPlace, Post } from '@/types/api';
 import { cn } from '@/lib/cn';
@@ -14,12 +13,11 @@ import { EmptyState } from '@/components/app-ui/EmptyState';
 import { Input } from '@/components/app-ui/Input';
 import { Skeleton } from '@/components/app-ui/Skeleton';
 
-type Kind = 'posts' | 'places';
+type Decide = (decision: DecisionKind, note?: string) => Promise<void>;
 
 export function ModerationPanel() {
   const [kind, setKind] = useState<Kind>('posts');
-  const posts = useAsync(() => postQueue(), []);
-  const places = useAsync(() => placeQueue(), []);
+  const { posts, places, decide } = useModerationQueues();
   const active = kind === 'posts' ? posts : places;
 
   const tabs: Array<{ id: Kind; label: string; count?: number }> = [
@@ -60,14 +58,14 @@ export function ModerationPanel() {
         <Queue
           items={posts.data?.data ?? []}
           kind="posts"
-          onDone={(id) => posts.setData((d) => d && { ...d, data: d.data.filter((p) => p.id !== id), total: d.total - 1 })}
+          decide={(id, decision, note) => decide('posts', id, decision, note)}
           render={(post) => <PostSummary post={post} />}
         />
       ) : (
         <Queue
           items={places.data?.data ?? []}
           kind="places"
-          onDone={(id) => places.setData((d) => d && { ...d, data: d.data.filter((p) => p.id !== id), total: d.total - 1 })}
+          decide={(id, decision, note) => decide('places', id, decision, note)}
           render={(place) => <PlaceSummary place={place} />}
         />
       )}
@@ -78,12 +76,12 @@ export function ModerationPanel() {
 function Queue<T extends { id: string }>({
   items,
   kind,
-  onDone,
+  decide,
   render,
 }: {
   items: T[];
   kind: Kind;
-  onDone: (id: string) => void;
+  decide: (id: string, decision: DecisionKind, note?: string) => Promise<void>;
   render: (item: T) => ReactNode;
 }) {
   if (items.length === 0) {
@@ -98,29 +96,23 @@ function Queue<T extends { id: string }>({
       {items.map((item) => (
         <li key={item.id} className="border border-ink/10 bg-white p-5 sm:p-6">
           {render(item)}
-          <Decision kind={kind} id={item.id} onDone={() => onDone(item.id)} />
+          <Decision decide={(decision, note) => decide(item.id, decision, note)} />
         </li>
       ))}
     </ul>
   );
 }
 
-function Decision({ kind, id, onDone }: { kind: Kind; id: string; onDone: () => void }) {
+function Decision({ decide: onDecide }: { decide: Decide }) {
   const [rejecting, setRejecting] = useState(false);
   const [note, setNote] = useState('');
-  const [busy, setBusy] = useState<'approve' | 'reject' | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState<DecisionKind | null>(null);
+  const { run, busy: running, error } = useMutation(onDecide);
+  const busy = running ? pending : null;
 
-  async function decide(decision: 'approve' | 'reject') {
-    setBusy(decision);
-    setError(null);
-    try {
-      await moderate(kind, id, decision, note.trim());
-      onDone();
-    } catch (err) {
-      setError(errorMessage(err));
-      setBusy(null);
-    }
+  function decide(decision: DecisionKind) {
+    setPending(decision);
+    void run(decision, note.trim());
   }
 
   return (

@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Bookmark, CalendarClock, Loader2, StickyNote, Trash2 } from 'lucide-react';
 import { useShortlist } from '@/hooks/useShortlist';
-import { buildSchedule } from '@/lib/api/places';
-import { errorMessage } from '@/lib/api/client';
-import type { DaySchedule, ShortlistItem } from '@/types/api';
+import { useDaySchedule } from '@/hooks/useDaySchedule';
+import { useMutation } from '@/hooks/useMutation';
+import type { ShortlistItem } from '@/types/api';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { PlaceCover } from '@/components/app-ui/PlaceCover';
@@ -107,35 +107,18 @@ function ShortlistRow({
   onSaveNotes: (id: string, notes: string) => Promise<void>;
 }) {
   const place = item.place;
-  const [removing, setRemoving] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.notes ?? '');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const removal = useMutation(onRemove);
+  const noteSave = useMutation(onSaveNotes, 'Could not save the note.');
+  const error = noteSave.error ?? removal.error;
 
   if (!place) return null;
 
-  async function handleRemove() {
-    setRemoving(true);
-    try {
-      await onRemove(item.id);
-    } catch (err) {
-      setError(errorMessage(err));
-      setRemoving(false);
-    }
-  }
+  const handleRemove = () => void removal.run(item.id);
 
   async function handleSave() {
-    setSaving(true);
-    setError(null);
-    try {
-      await onSaveNotes(item.id, draft.trim());
-      setEditing(false);
-    } catch (err) {
-      setError(errorMessage(err, 'Could not save the note.'));
-    } finally {
-      setSaving(false);
-    }
+    if ((await noteSave.run(item.id, draft.trim())).ok) setEditing(false);
   }
 
   return (
@@ -178,12 +161,12 @@ function ShortlistRow({
           <button
             type="button"
             onClick={handleRemove}
-            disabled={removing}
+            disabled={removal.busy}
             aria-label={`Remove ${place.name} from shortlist`}
             title="Remove"
             className={`${ICON_BUTTON} hover:bg-red/5 hover:text-red`}
           >
-            {removing ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />}
+            {removal.busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Trash2 className="h-4 w-4" aria-hidden />}
           </button>
         </div>
       </div>
@@ -202,8 +185,8 @@ function ShortlistRow({
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
               Cancel
             </Button>
-            <Button size="sm" variant="dark" onClick={handleSave} disabled={saving}>
-              {saving && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
+            <Button size="sm" variant="dark" onClick={handleSave} disabled={noteSave.busy}>
+              {noteSave.busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
               Save note
             </Button>
           </div>
@@ -220,24 +203,13 @@ function ShortlistRow({
   );
 }
 
-/** One-day route through the shortlist, ordered by the BE (nearest-neighbour + meal slots). */
 function DayPlan({ items }: { items: ShortlistItem[] }) {
   const [startHour, setStartHour] = useState(9);
-  const [plan, setPlan] = useState<DaySchedule | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { plan, build } = useDaySchedule();
+  const loading = build.busy;
+  const error = build.error;
 
-  async function onBuild() {
-    setLoading(true);
-    setError(null);
-    try {
-      setPlan(await buildSchedule(items.map((i) => i.placeId), startHour));
-    } catch (err) {
-      setError(errorMessage(err, 'Could not build a plan.'));
-    } finally {
-      setLoading(false);
-    }
-  }
+  const onBuild = () => void build.run(items.map((i) => i.placeId), startHour);
 
   return (
     <aside className="self-start border border-ink/10 bg-white p-6 lg:sticky lg:top-24">
