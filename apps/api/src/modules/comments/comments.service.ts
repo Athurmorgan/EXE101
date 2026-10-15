@@ -14,7 +14,7 @@ export class CommentsService {
       where: { placeId, parentId: null },
       orderBy: { createdAt: 'desc' },
       include: { replies: { orderBy: { createdAt: 'asc' } } },
-    }) as unknown as Comment[];
+    });
   }
 
   async findByPost(postId: string): Promise<Comment[]> {
@@ -22,7 +22,7 @@ export class CommentsService {
       where: { postId, parentId: null },
       orderBy: { createdAt: 'desc' },
       include: { replies: { orderBy: { createdAt: 'asc' } } },
-    }) as unknown as Comment[];
+    });
   }
 
   async create(dto: CreateCommentDto, user: AuthUser): Promise<Comment> {

@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { haversineDistance, estimateTravelTime } from '../../common/utils/geo-distance';
+import { cacheKey } from '../../common/utils/cache-key';
+import { RedisService } from '../../common/services/redis.service';
 import type { Prisma, Place } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -15,7 +17,10 @@ interface SchedulePlace {
 
 @Injectable()
 export class PlacesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redis: RedisService,
+  ) {}
 
   async create(data: {
     name: string;
@@ -31,7 +36,7 @@ export class PlacesService {
     regionId?: string;
     isHiddenPlace?: boolean;
   }): Promise<Place> {
-    return this.prisma.place.create({
+    const created = await this.prisma.place.create({
       data: {
         name: data.name,
         description: data.description,
@@ -48,7 +53,11 @@ export class PlacesService {
         source: 'USER_SUBMITTED',
         status: 'PENDING',
       },
-    }) as unknown as Place;
+    });
+    // Tao moi → khong can xoa cache search (chi APPROVED moi nam trong cache), nhung
+    // van invalidate de khi admin duyet xong, search thay dia diem moi.
+    await this.redis.invalidate('places:search:*');
+    return created;
   }
 
   async findOne(id: string, includeAllStatuses = false): Promise<Place> {
@@ -58,18 +67,27 @@ export class PlacesService {
     });
     if (!place) throw new Error(`Place ${id} not found`);
     if (!includeAllStatuses && place.status !== 'APPROVED') throw new Error(`Place ${id} not available`);
-    return place as Place;
+    return place;
   }
 
   async update(id: string, data: Partial<{
     name: string; description: string; lat: number; lng: number; address: string;
     category: string; cuisineType: string; mealType: string; priceRange: string; avgMealPrice: number; regionId: string; isHiddenPlace: boolean;
   }>): Promise<Place> {
-    return this.prisma.place.update({ where: { id }, data }) as unknown as Place;
+    const updated = await this.prisma.place.update({ where: { id }, data });
+    await this.redis.invalidate('places:search:*');
+    return updated;
   }
 
   async remove(id: string): Promise<Place> {
-    return this.prisma.place.delete({ where: { id } }) as unknown as Place;
+    const removed = await this.prisma.place.delete({ where: { id } });
+    await this.redis.invalidate('places:search:*');
+    return removed;
+  }
+
+  /** Xoa cache search places (goi tu ModerationService khi approve/reject). */
+  async invalidateSearchCache(): Promise<void> {
+    await this.redis.invalidate('places:search:*');
   }
 
   async search(query: {
@@ -94,12 +112,31 @@ export class PlacesService {
       query.sortBy === 'googleRating' ? { googleRating: query.order ?? 'desc' } :
       { createdAt: 'desc' };
 
-    const [total, rows] = await Promise.all([
-      this.prisma.place.count({ where }),
-      this.prisma.place.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
-    ]);
-
-    return { data: rows as Place[], total, page, limit };
+    return this.redis.getOrSet(
+      cacheKey('places:search', {
+        q: query.q ?? '',
+        category: query.category ?? '',
+        regionId: query.regionId ?? '',
+        cuisineType: query.cuisineType ?? '',
+        mealType: query.mealType ?? '',
+        priceRange: query.priceRange ?? '',
+        isHiddenPlace: query.isHiddenPlace,
+        lat: query.lat,
+        lng: query.lng,
+        radiusKm: query.radiusKm,
+        page, limit,
+        sortBy: query.sortBy ?? '',
+        order: query.order ?? '',
+      }),
+      30, // 30s — search results co the doi khi admin duyet them
+      async () => {
+        const [total, rows] = await Promise.all([
+          this.prisma.place.count({ where }),
+          this.prisma.place.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
+        ]);
+        return { data: rows, total, page, limit };
+      },
+    );
   }
 
   buildSchedule(places: SchedulePlace[], options: { startHour?: number } = {}): Array<{

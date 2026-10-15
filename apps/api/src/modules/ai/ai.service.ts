@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { RoundRobinRotator } from './gemini-rotation';
+import { RedisService } from '../../common/services/redis.service';
+import { cacheKey } from '../../common/utils/cache-key';
 import type { GenerateItineraryDto } from './dto/ai.dto';
 
 @Injectable()
@@ -8,7 +10,10 @@ export class AiService {
   private readonly logger = new Logger(AiService.name);
   private readonly rotator: RoundRobinRotator;
 
-  constructor(private readonly config: ConfigService) {
+  constructor(
+    private readonly config: ConfigService,
+    private readonly redis: RedisService,
+  ) {
     const keys = [
       this.config.get<string>('GEMINI_API_KEY_1') ?? '',
       this.config.get<string>('GEMINI_API_KEY_2') ?? '',
@@ -18,22 +23,40 @@ export class AiService {
   }
 
   async generate5Options(dto: GenerateItineraryDto): Promise<AiItineraryOptions> {
-    const days = this.calculateDays(dto.startDate, dto.endDate);
-    const prompt = this.buildPrompt(dto, days);
+    const days = AiService.calculateDays(dto.startDate, dto.endDate);
 
-    for (let attempt = 0; attempt < this.rotator.size; attempt++) {
-      const key = this.rotator.getActiveKey();
-      try {
-        const result = await this.callGemini(key, prompt);
-        return this.parseResponse(result, days);
-      } catch (err) {
-        this.logger.warn(`Gemini key #${this.rotator.getActiveIndex()} failed: ${(err as Error).message}. Rotating.`);
-        this.rotator.rotate();
-      }
-    }
+    // Cache theo (regionId, dates, styles, dietary, budget) trong 30 phut.
+    // User test nhieu lan voi cung vung + ngay → tiet kiem quota Gemini, giam
+    // latency tu ~5s xuong ~10ms khi cache hit. Key KHONG bao gom travelers
+    // vi AI prompt khong thay doi theo so nguoi.
+    return this.redis.getOrSet(
+      cacheKey('ai:itin', {
+        regionId: dto.regionId,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        styles: (dto.styles ?? []).join(','),
+        dietary: dto.dietary ?? '',
+        budget: dto.budgetVnd ?? 0,
+      }),
+      1800, // 30 phut
+      async () => {
+        const prompt = this.buildPrompt(dto, days);
 
-    this.logger.error('All Gemini keys failed. Using fallback.');
-    return this.fallbackOptions(dto, days);
+        for (let attempt = 0; attempt < this.rotator.size; attempt++) {
+          const key = this.rotator.getActiveKey();
+          try {
+            const result = await this.callGemini(key, prompt);
+            return this.parseResponse(result, days);
+          } catch (err) {
+            this.logger.warn(`Gemini key #${this.rotator.getActiveIndex()} failed: ${(err as Error).message}. Rotating.`);
+            this.rotator.rotate();
+          }
+        }
+
+        this.logger.error('All Gemini keys failed. Using fallback.');
+        return this.fallbackOptions(dto, days);
+      },
+    );
   }
 
   private buildPrompt(dto: GenerateItineraryDto, days: number): string {
@@ -111,10 +134,13 @@ Tra loi JSON:
     return { options };
   }
 
-  private calculateDays(start: string, end: string): number {
+  /** Tính số ngày giữa hai ISO date (YYYY-MM-DD). Cộng 1 để tính cả ngày đi và về.
+   *  Math.max(1, …) đảm bảo khi start = end thì trả về 1. */
+  static calculateDays(start: string, end: string): number {
     const s = new Date(start);
     const e = new Date(end);
-    return Math.max(1, Math.ceil((e.getTime() - s.getTime() / (1000 * 60 * 60 * 24)) + 1));
+    const diffMs = e.getTime() - s.getTime();
+    return Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)) + 1);
   }
 }
 

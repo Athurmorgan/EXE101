@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "predev": "npm run build --workspace @vivivu/shared",
-    "dev": "npm run clean --workspace @vivivu/api && npm run build --workspace @vivivu/api && npm run start:dev --workspace @vivivu/api",
+    "dev": "npm run build --workspace @vivivu/api && npm run start:dev --workspace @vivivu/api",
     "build": "npm run build --workspace @vivivu/api",
     "lint": "npm run lint --workspace @vivivu/api",
     "lint:fix": "npm run lint:fix --workspace @vivivu/api",

@@ -31,7 +31,7 @@ export class ItineraryService {
         estimatedCost: dto.budgetVnd,
         status: 'DRAFT',
       },
-    }) as unknown as Itinerary;
+    });
   }
 
   async generateOptions(itineraryId: string, user: AuthUser): Promise<Itinerary> {
@@ -95,7 +95,7 @@ export class ItineraryService {
     });
     await this.audit.record({ action: AUDIT_ACTIONS.ITINERARY_APPLY, targetType: 'Itinerary', targetId: itineraryId, actor: { id: user.id, email: user.email }, after: { selectedOption: dto.optionNumber } });
 
-    return updated as unknown as Itinerary;
+    return updated;
   }
 
   async findByUser(userId: string): Promise<Itinerary[]> {
@@ -103,7 +103,7 @@ export class ItineraryService {
       where: { userId },
       orderBy: { createdAt: 'desc' },
       include: { stops: { orderBy: [{ dayNumber: 'asc' }, { orderInDay: 'asc' }] }, region: true },
-    }) as unknown as Itinerary[];
+    });
   }
 
   async findOne(id: string, userId?: string): Promise<Itinerary> {
@@ -113,7 +113,7 @@ export class ItineraryService {
     });
     if (!itinerary) throw AppException.notFound('Itinerary');
     if (userId && itinerary.userId !== userId) throw new AppException(ErrorCode.FORBIDDEN, 403, 'You can only view your own itinerary');
-    return itinerary as unknown as Itinerary;
+    return itinerary;
   }
 
   async remove(id: string, user: AuthUser): Promise<{ id: string }> {

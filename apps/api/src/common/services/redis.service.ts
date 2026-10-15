@@ -63,4 +63,51 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     if (keys.length === 0) return;
     await this.client?.del(...keys);
   }
+
+  /**
+   * Cache-aside helper: tra callback neu cache miss, nguoc lai tra gia tri da cache.
+   *
+   * Neu Redis khong kha dung (client null) thi luon goi loader — service van chay
+   * binh thuong, chi mat cache. Loi cua loader duoc nem len, loi cua Redis bi
+   * nuot va log warning de khong break request.
+   */
+  async getOrSet<T>(key: string, ttlSeconds: number, loader: () => Promise<T>): Promise<T> {
+    const client = this.getClient();
+    if (client) {
+      try {
+        const cached = await client.get(key);
+        if (cached) return JSON.parse(cached) as T;
+      } catch (error: unknown) {
+        this.logger.warn(`Redis get loi (key=${key}): ${(error as Error).message}`);
+      }
+    }
+
+    const fresh = await loader();
+
+    if (client) {
+      try {
+        await client.set(key, JSON.stringify(fresh), 'EX', ttlSeconds);
+      } catch (error: unknown) {
+        this.logger.warn(`Redis set loi (key=${key}): ${(error as Error).message}`);
+      }
+    }
+    return fresh;
+  }
+
+  /**
+   * Xoa cache theo pattern (vd: `places:*`).
+   *
+   * `KEYS` chi nen dung cho development/test vi blocking; trong production nen
+   * dung `SCAN`. O day du lieu nho (vai tram key) nen KEPS chap nhan duoc.
+   */
+  async invalidate(pattern: string): Promise<void> {
+    const client = this.getClient();
+    if (!client) return;
+    try {
+      const keys = await client.keys(pattern);
+      if (keys.length > 0) await client.del(...keys);
+    } catch (error: unknown) {
+      this.logger.warn(`Redis invalidate loi (pattern=${pattern}): ${(error as Error).message}`);
+    }
+  }
 }

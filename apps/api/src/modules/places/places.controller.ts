@@ -41,7 +41,7 @@ export class PlacesController {
 
   @Put(':id')
   update(@Param('id', ParseUUIDPipe) id: string, @Body() body: Record<string, unknown>) {
-    return this.placesService.update(id, body as Parameters<typeof this.placesService.update>[1]);
+    return this.placesService.update(id, body);
   }
 
   @Delete(':id')

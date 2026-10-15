@@ -2,6 +2,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -14,7 +15,11 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: false });
   const config = app.get(ConfigService);
 
+  // `helmet` truoc `compression`: helmet set header security, compression nen gzip
+  // response sau. `compression` chi nen gzip body lon (>= 1KB) de khong ton CPU
+  // cho cac response nho nhu 401.
   app.use(helmet());
+  app.use(compression({ threshold: 1024 }));
   app.use(cookieParser());
 
   // Danh sach origin doc tu env; rong = cho phep moi origin (dev qua Vite proxy).

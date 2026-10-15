@@ -20,8 +20,8 @@
 | **Giai đoạn hiện tại** | **Milestone 1 — Foundation** |
 | **Tiến độ M1** | **13 / 13 task** — auth + RBAC + regions + places + shortlist + comments + reactions + community + moderation + AI itinerary |
 | **Trạng thái** | ✅ **API đang chạy thật** tại `http://localhost:3000/api/v1` · Swagger UI tại `/api/docs` |
-| **Cập nhật lần cuối** | 2026-10-10 |
-| **Cập nhật bởi** | phiên 5 — Sửa hết TypeScript errors + chạy được API + cập nhật status |
+| **Cập nhật lần cuối** | 2026-10-15 |
+| **Cập nhật bởi** | phiên 6 — Performance quick-wins (gzip + Cache-Control + Redis cache + composite indexes) |
 
 ### Chỉ số nhanh
 
@@ -36,6 +36,8 @@ DB      : ✅ 21 bảng — users · refresh_tokens · email_verification_tokens
 API     : ✅ ~50 endpoint — chạy thật :3000, Swagger UI mở được
 Seed    : ✅ 5 tài khoản + 62 regions (đầy đủ 34 tỉnh/TP của VN) + 13 food places mẫu
 FE      : ✅ tầng API dùng chung, typecheck sạch
+Perf    : ✅ gzip (~74% payload reduction) · Cache-Control 7 endpoint ·
+              Redis cache 5 endpoint (30s-30p) · 3 composite index
 ```
 
 ---
@@ -574,12 +576,15 @@ Ghi lại vì đây là loại lỗi **không bị bắt bởi typecheck hay uni
 | 12 | **Phiên 5: Duplicate field `estimatedCost` trong `ItineraryStop`** | Sửa schema 2 lần liên tiếp mà không xoá field cũ | Đọc lại schema trước khi thêm, dùng `StrReplace` thay vì `append` |
 | 13 | **Phiên 5: `AiService` crash khi start** vì không có `GEMINI_API_KEY` | `RoundRobinRotator` throw khi mảng rỗng → Nest fail-to-start | Thêm placeholder key khi rỗng, log warning thay vì crash |
 | 14 | **Phiên 5: `EADDRINUSE :::3000`** | Server từ phiên trước vẫn chạy, phiên mới start trùng cổng | Kiểm tra `Get-Process node` trước khi start, hoặc đổi `PORT` trong `.env` |
+| 15 | **`AiService.calculateDays` trả về ~20000 ngày thay vì 1–30** | Toán tử `/` có độ ưu tiên cao hơn `-`. Biểu thức `e - s / 86400000` bị đọc thành `e - (s / 86400000)` → s bị chia cho MS_PER_DAY trước khi trừ, cho ra "ngày kể từ epoch" thay vì khoảng cách. Pass typecheck, pass lint, pass 28 unit test cũ — chỉ lộ khi gọi `/ai/itinerary/generate` thật | Tách `diffMs = e.getTime() - s.getTime()` thành biến riêng trước khi chia. Đổi method thành `static` và thêm `ai.service.spec.ts` (6 case) để chặn tái phát |
 
 ### Bài học rút ra
 
-> **Luôn chạy thật rồi mới coi là xong.** Cả 14 lỗi trên đều pass typecheck, pass lint, pass 28 unit test — nhưng vẫn hỏng khi có request thật đến.
+> **Luôn chạy thật rồi mới coi là xong.** Cả 15 lỗi trên đều pass typecheck, pass lint, pass unit test — nhưng vẫn hỏng khi có request thật đến.
 >
 > **Đặc biệt lỗi 13:** AI service bị crash ngay lúc start app nếu không có API key. Phải thiết kế service **degrade gracefully** — luôn có fallback path.
+>
+> **Đặc biệt lỗi 15:** Lỗi toán học thuần (operator precedence) mà cả type system lẫn test cũ đều bỏ sót. Cách phòng tránh hiệu quả nhất cho loại bug này là **tách biểu thức phức tạp ra biến trung gian có tên** (`diffMs`, `hoursInDay`, …) thay vì viết một dòng dài có nhiều phép toán — code vừa dễ đọc, vừa không thể quên ngoặc.
 
 ---
 
@@ -595,7 +600,7 @@ Ghi lại vì đây là loại lỗi **không bị bắt bởi typecheck hay uni
 | 6 | **E2E test** (Supertest) + **GitHub Actions** | M2 |
 | 7 | **RegionScopeGuard** chuyển từ in-service check sang guard riêng | M2 |
 | 8 | **Pagination cursor** thay vì offset (khi data lớn) | M2 |
-| 9 | **Cache layer** (Redis) cho search results, region list | M2 |
+| 9 | **Cache layer** (Redis) cho search results, region list | ✅ **Đã xong (perf quick-win 2026-10-15)** — regions list/cities/children/item, places search, community feed, AI itinerary (5 endpoint, TTL 30s-30phut) |
 | 10 | **Rate limit** cho `verify-email`, `login`, AI generate | M2 |
 | 11 | **Mobile app** (React Native) dùng chung API | M3 |
 | 12 | **Push notification** + **AI duyệt ảnh tự động** | M3 |
@@ -640,6 +645,9 @@ Ghi lại vì đây là loại lỗi **không bị bắt bởi typecheck hay uni
 | 2026-10-10 | **Sửa 5 lỗi vòng 3** | `nest build` không output (cache lệch) · `AiService` crash thiếu key · `EADDRINUSE` port 3000 · schema duplicate field |
 | 2026-10-10 | **API chạy thật** | `npm run build` ✅ · `npm run start:prod` ✅ · Swagger `/api/docs` mở được · test `/regions/cities` + `/places?category=restaurant` đều 200 |
 | 2026-10-10 | Cập nhật `PROJECT_STATUS.md` (file này) | Tổng hợp Stage 1-9 + 9 bước hành trình du khách + 21 bảng DB + permission đặc biệt cho Comment/Post |
+| 2026-10-15 | **Performance Quick-Wins** | `compression` middleware (gzip giảm ~74% payload) · `CacheControlInterceptor` cho 7 endpoint public (`Cache-Control: public, max-age=...`) · `RedisService` thêm `getOrSet` + `invalidate` (helper cache-aside) · Cache layer cho 5 endpoint: `/regions/cities` (5p), `/regions` (60s), `/regions/:id` + `/regions/:id/children` (5p), `/places` search (30s), `/community/posts` feed (30s), AI itinerary (30p theo regionId+dates) · Composite indexes migration: `place_status_category_idx`, `place_status_region_idx`, `post_status_createdAt_idx` (mục 12 #9 done) · Tách `RedisService` → `RedisModule` `@Global` để mọi module dùng được |
+| 2026-10-15 | **Verify thật** | typecheck ✅ · 28 unit test pass ✅ · `nest build` ✅ · `npm run start:prod` boot thành công, Redis connected · Cache hit `/regions/cities` 14ms vs miss 35ms (2.5x) · Cache hit `/places?category=restaurant` 13ms vs miss 68ms (5x) · gzip `/regions` 4756 → 1246 bytes (74% reduction) · Cache header đúng: `Cache-Control: public, max-age=60` + `Vary: Origin, Accept-Encoding` |
+| 2026-10-15 | **Fix bug #15 `calculateDays` precedence** | Tách `diffMs = e.getTime() - s.getTime()` thành biến riêng (loại bỏ khả năng quên ngoặc) · đổi `private calculateDays` thành `static calculateDays` (test trực tiếp qua class) · thêm `apps/api/src/modules/ai/ai.service.spec.ts` 6 case (cùng ngày, 1 đêm, 2 đêm, 7 đêm, ngược thời gian, canh bug cũ) · test pass · cập nhật mục 11 thêm dòng #15 + bài học "tách biểu thức phức tạp ra biến trung gian có tên" |
 
 ---
 

@@ -297,6 +297,10 @@ model Place {
   @@index([priceRange], map: "place_price_idx")
   @@index([status], map: "place_status_idx")
   @@index([isHiddenPlace], map: "place_is_hidden_idx")
+  /// Composite cho hot path: filter `status` + `category` (search nhanh).
+  @@index([status, category], map: "place_status_category_idx")
+  /// Composite cho hot path: filter `status` + `regionId` (danh sach theo vung).
+  @@index([status, regionId], map: "place_status_region_idx")
   @@map("places")
 }
 
@@ -386,6 +390,8 @@ model Post {
   @@index([authorId], map: "post_author_idx")
   @@index([status], map: "post_status_idx")
   @@index([regionId], map: "post_region_idx")
+  /// Composite cho hot path: feed `status = APPROVED ORDER BY createdAt DESC`.
+  @@index([status, createdAt(sort: Desc)], map: "post_status_createdAt_idx")
   @@map("posts")
 }
 
@@ -539,23 +545,23 @@ model ItineraryStop {
   placeLng     Float   @map("place_lng")
   placeAddress String? @map("place_address")
 
-  dayNumber         Int     @map("day_number")
-  orderInDay        Int     @map("order_in_day")
+  dayNumber             Int     @map("day_number")
+  orderInDay            Int     @map("order_in_day")
   /// Thoi gian trong ngay dinh dang "HH:mm", vi du "09:00".
-  scheduledTime     String? @map("scheduled_time")
+  scheduledTime         String? @map("scheduled_time")
   /// Thoi gian uoc tinh tai diem (phut).
-  estimatedDuration Int?    @map("estimated_duration")
+  estimatedDuration     Int?    @map("estimated_duration")
   /// Chi phi uoc tinh (VND).
-  estimatedCost     Int?    @map("estimated_cost")
+  estimatedCost         Int?    @map("estimated_cost")
   /// Thoi gian di chuyen tu diem truoc do (phut).
-  travelTimeFromPrevMin Int? @map("travel_time_from_prev_min")
+  travelTimeFromPrevMin Int?    @map("travel_time_from_prev_min")
   /// "meal" (an uong) | "visit" (tham quan) | "transit" (di chuyen)
-  stopType          String  @default("visit") @map("stop_type")
+  stopType              String  @default("visit") @map("stop_type")
   /// "breakfast" | "lunch" | "dinner" | "coffee" (neu stopType = "meal")
-  mealType          String? @map("meal_type")
-  notes             String?
+  mealType              String? @map("meal_type")
+  notes                 String?
   /// 1-5: thuoc option nao trong 5 AI-generated options.
-  optionNumber      Int     @map("option_number")
+  optionNumber          Int     @map("option_number")
 
   createdAt DateTime @default(now()) @map("created_at")
 

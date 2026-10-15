@@ -4,11 +4,18 @@ import type { Post, Place } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppException, ErrorCode } from '../../common/errors/app.exception';
 import { AuditService } from '../audit/audit.service';
+import { CommunityService } from '../community/community.service';
+import { PlacesService } from '../places/places.service';
 import type { AuthUser } from '../../common/decorators';
 
 @Injectable()
 export class ModerationService {
-  constructor(private readonly prisma: PrismaService, private readonly audit: AuditService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly audit: AuditService,
+    private readonly community: CommunityService,
+    private readonly places: PlacesService,
+  ) {}
 
   async findPending(type: 'posts' | 'places', user: AuthUser, page = 1, limit = 20): Promise<{ data: unknown[]; total: number }> {
     const allowedRegionIds = await this.getAllowedRegionIds(user);
@@ -20,7 +27,7 @@ export class ModerationService {
         this.prisma.post.count({ where }),
         this.prisma.post.findMany({ where, orderBy: { createdAt: 'asc' }, skip: (page - 1) * limit, take: limit, include: { author: { select: { id: true, fullName: true, email: true } }, media: true } }),
       ]);
-      return { data: rows as unknown[], total };
+      return { data: rows, total };
     }
 
     const where = user.role === 'ADMIN' ? { status: 'PENDING' } : { status: 'PENDING', regionId: { in: allowedRegionIds } };
@@ -28,7 +35,7 @@ export class ModerationService {
       this.prisma.place.count({ where }),
       this.prisma.place.findMany({ where, orderBy: { createdAt: 'asc' }, skip: (page - 1) * limit, take: limit, include: { region: true } }),
     ]);
-    return { data: rows as unknown[], total };
+    return { data: rows, total };
   }
 
   async approvePost(postId: string, user: AuthUser): Promise<Post> {
@@ -39,6 +46,8 @@ export class ModerationService {
     const updated = await this.prisma.post.update({ where: { id: postId }, data: { status: 'APPROVED' } });
     await this.prisma.postMedia.updateMany({ where: { postId, status: 'PENDING' }, data: { status: 'APPROVED' } });
     await this.audit.record({ action: AUDIT_ACTIONS.POST_APPROVE, targetType: 'Post', targetId: postId, actor: { id: user.id, email: user.email } });
+    // Post vua duyet xuat hien trong feed → xoa cache.
+    await this.community.invalidateFeedCache();
     return updated;
   }
 
@@ -49,6 +58,10 @@ export class ModerationService {
 
     const updated = await this.prisma.post.update({ where: { id: postId }, data: { status: 'REJECTED' } });
     await this.audit.record({ action: AUDIT_ACTIONS.POST_REJECT, targetType: 'Post', targetId: postId, actor: { id: user.id, email: user.email }, after: { reason } });
+    // Post dang APPROVED bi reject → xoa cache.
+    if (post.status === 'APPROVED') {
+      await this.community.invalidateFeedCache();
+    }
     return updated;
   }
 
@@ -59,6 +72,8 @@ export class ModerationService {
 
     const updated = await this.prisma.place.update({ where: { id: placeId }, data: { status: 'APPROVED' } });
     await this.audit.record({ action: AUDIT_ACTIONS.PLACE_APPROVE, targetType: 'Place', targetId: placeId, actor: { id: user.id, email: user.email } });
+    // Place vua duyet xuat hien trong search → xoa cache.
+    await this.places.invalidateSearchCache();
     return updated;
   }
 
@@ -69,6 +84,9 @@ export class ModerationService {
 
     const updated = await this.prisma.place.update({ where: { id: placeId }, data: { status: 'REJECTED' } });
     await this.audit.record({ action: AUDIT_ACTIONS.PLACE_REJECT, targetType: 'Place', targetId: placeId, actor: { id: user.id, email: user.email }, after: { reason } });
+    if (place.status === 'APPROVED') {
+      await this.places.invalidateSearchCache();
+    }
     return updated;
   }
 

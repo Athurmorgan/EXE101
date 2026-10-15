@@ -5,10 +5,11 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { CacheControlInterceptor } from './common/interceptors/cache-control.interceptor';
 import { LocaleMiddleware } from './common/middleware/locale.middleware';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { HealthController } from './common/controllers/health.controller';
-import { RedisService } from './common/services/redis.service';
+import { RedisModule } from './common/services/redis.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
@@ -30,6 +31,9 @@ import { ItineraryModule } from './modules/itinerary/itinerary.module';
     PrismaModule,
     // `AuditModule` `@Global` nen phai import o day mot lan duy nhat.
     AuditModule,
+    // `RedisModule` `@Global` cung tuong tu — import mot lan o day, moi module
+    // con deu su dung duoc `RedisService` qua constructor injection.
+    RedisModule,
     AuthModule,
     UsersModule,
     // === STAGE 1-3: Discover, Search, Shortlist ===
@@ -48,10 +52,10 @@ import { ItineraryModule } from './modules/itinerary/itinerary.module';
   ],
   controllers: [HealthController],
   providers: [
-    RedisService,
     // Thu tu: filter -> interceptor -> guard.
     // Guard phai sau interceptor de loi 401/403 cung qua interceptor.
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: CacheControlInterceptor },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
     // Mac dinh "phai dang nhap"; route `@Public()` duoc mo.
     { provide: APP_GUARD, useClass: JwtAuthGuard },

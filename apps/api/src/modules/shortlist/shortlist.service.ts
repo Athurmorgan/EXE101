@@ -12,7 +12,7 @@ export class ShortlistService {
       where: { userId },
       orderBy: { order: 'asc' },
       include: { place: true },
-    }) as unknown as Shortlist[];
+    });
   }
 
   async add(userId: string, dto: { placeId: string; notes?: string; order?: number }): Promise<Shortlist> {
