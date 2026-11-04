@@ -1,8 +1,11 @@
 import type { ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { FloatingCta } from '@/components/layout/FloatingCta';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { HomePage } from '@/pages/HomePage';
+import { Preloader } from '@/components/layout/Preloader';
+import { HERO_FIRST_IMAGE } from '@/sections/Hero/Hero';
 import { AppShell } from '@/components/app-layout/AppShell';
 import { RequireAuth } from '@/components/app-layout/RequireAuth';
 import { DiscoverPage } from '@/pages/app/DiscoverPage';
@@ -20,6 +23,7 @@ import { TripDetailPage } from '@/pages/app/TripDetailPage';
 import { AccountPage } from '@/pages/app/AccountPage';
 import { AdminPage } from '@/pages/app/AdminPage';
 import { AuthProvider } from '@/hooks/useAuth';
+import { CustomCursor } from '@/components/layout/CustomCursor';
 import { SmoothScroll } from '@/providers/SmoothScroll';
 import styles from './App.module.css';
 
@@ -39,6 +43,7 @@ function LandingLayout() {
 function LandingContent() {
   return (
     <div className="landing">
+      <Preloader firstImage={HERO_FIRST_IMAGE} />
       <a className={styles.skipLink} href="#main">
         Skip to content
       </a>
@@ -50,6 +55,7 @@ function LandingContent() {
       </main>
 
       <Footer />
+      <FloatingCta />
     </div>
   );
 }
@@ -67,6 +73,7 @@ function guard(page: ReactNode) {
 export default function App() {
   return (
     <AuthProvider>
+      <CustomCursor />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingLayout />} />

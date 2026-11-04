@@ -1,7 +1,8 @@
 .panels {
   display: flex;
   gap: 12px;
-  height: 640px;
+  height: min(640px, 100vh - 160px);
+  min-height: 440px;
   margin-top: 56px;
 }
 
@@ -9,7 +10,7 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 0;
   transition: flex 0.8s var(--ease-out);
 }
 
@@ -25,12 +26,9 @@
   color: var(--color-white);
 }
 
-.photoFrame {
+.photo {
   position: absolute;
   inset: 0;
-}
-
-.photo {
   transition: transform 1.2s var(--ease-out);
 }
 
@@ -41,7 +39,7 @@
 .shade {
   position: absolute;
   inset: 0;
-  background: linear-gradient(0deg, rgb(0 0 0 / 72%) 0%, rgb(0 0 0 / 10%) 60%);
+  background: linear-gradient(0deg, rgb(0 0 0 / 45%) 0%, rgb(0 0 0 / 0%) 55%);
 }
 
 .content {
@@ -83,10 +81,23 @@
   gap: 6px;
   margin-top: 8px;
   font-weight: 500;
-  color: var(--color-mint);
+  color: rgb(255 255 255 / 95%);
 }
 
 /* Collapsed panels show only a vertical name so the row stays readable. */
+/* The open panel's caption sits on a glass card. */
+.active .content {
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  max-width: 460px;
+  padding: 22px 24px;
+  border: 1px solid var(--glass-border);
+  border-radius: 0;
+  background: rgb(255 255 255 / 12%);
+  backdrop-filter: var(--glass-blur);
+}
+
 @media (width >= 961px) {
   .panel:not(.active) .content h3 {
     font-size: 26px;
@@ -117,7 +128,22 @@
     opacity: 1;
   }
 
+  .content {
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    padding: 18px 20px;
+    border: 1px solid var(--glass-border);
+    border-radius: 0;
+    background: rgb(255 255 255 / 12%);
+    backdrop-filter: var(--glass-blur);
+  }
+
   .content h3 {
     font-size: 32px;
   }
+}
+
+.reveal {
+  height: 100%;
 }

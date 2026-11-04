@@ -1,0 +1,157 @@
+/*
+ * Pulled up over the last stretch of the hero (its `.stage` is 40vh taller than the pinned photo),
+ * so this sheet slides over the photo before the photo scrolls away.
+ */
+.statement {
+  position: relative;
+  z-index: 3;
+  margin-top: -40vh;
+  padding: clamp(96px, 12vw, 160px) 0 clamp(80px, 10vw, 140px);
+  border-radius: 32px 32px 0 0;
+  background: var(--sd-cream);
+}
+
+:global(.landing) .title {
+  display: grid;
+  font-size: clamp(56px, 8.4vw, 120px);
+  line-height: 0.98;
+}
+
+.title em {
+  color: var(--sd-gold-deep);
+}
+
+.line1 {
+  justify-self: start;
+}
+
+.line2 {
+  justify-self: center;
+}
+
+.line3 {
+  justify-self: end;
+}
+
+.copy {
+  max-width: 470px;
+  margin-top: 48px;
+  margin-left: auto;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  text-transform: uppercase;
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  align-items: start;
+  gap: clamp(24px, 4vw, 64px);
+  margin-top: clamp(64px, 8vw, 120px);
+}
+
+.smallFrame {
+  height: 340px;
+  overflow: hidden;
+}
+
+.large {
+  position: relative;
+}
+
+.largeFrame {
+  height: clamp(380px, 46vw, 640px);
+  overflow: hidden;
+}
+
+.plate {
+  position: absolute;
+  right: 32px;
+  bottom: 32px;
+  max-width: 400px;
+  padding: 24px 28px;
+  border-radius: 6px;
+  background: rgb(68 62 43 / 72%);
+  color: var(--sd-cream);
+  font-size: 15px;
+  line-height: 1.55;
+  backdrop-filter: blur(6px);
+}
+
+/*
+ * The statement lines drift apart sideways as they pass, and the small photo moves faster than the
+ * page, as on the reference. Both run on the compositor via view timelines.
+ */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .line1,
+    .line3 {
+      animation: drift-right linear both;
+      animation-timeline: view();
+      animation-range: cover 10% cover 90%;
+    }
+
+    .line3 {
+      animation-name: drift-left;
+    }
+
+    .small {
+      animation: rise-fast linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+@keyframes drift-right {
+  from {
+    translate: -4vw 0;
+  }
+
+  to {
+    translate: 4vw 0;
+  }
+}
+
+@keyframes drift-left {
+  from {
+    translate: 4vw 0;
+  }
+
+  to {
+    translate: -4vw 0;
+  }
+}
+
+@keyframes rise-fast {
+  from {
+    translate: 0 140px;
+  }
+
+  to {
+    translate: 0 -140px;
+  }
+}
+
+@media (width <= 960px) {
+  .photos {
+    grid-template-columns: 1fr;
+  }
+
+  .small {
+    display: none;
+  }
+
+  .plate {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    max-width: none;
+    margin: -48px 16px 0;
+  }
+
+  .copy {
+    margin-left: 0;
+  }
+}

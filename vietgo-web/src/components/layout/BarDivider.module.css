@@ -1,0 +1,40 @@
+.divider {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: clamp(80px, 11vw, 140px);
+  padding: 0 clamp(8px, 2vw, 24px);
+  overflow: hidden;
+}
+
+/* Each bar is a narrow spike; it grows from its base, only on transform. */
+.divider span {
+  flex: none;
+  width: 0.55%;
+  min-width: 3px;
+  height: calc(var(--h) * 100%);
+  background: var(--sd-tan);
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.9s var(--ease-out);
+}
+
+.flip {
+  align-items: flex-start;
+}
+
+.flip span {
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top;
+}
+
+.visible span {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .divider span {
+    transform: none;
+  }
+}

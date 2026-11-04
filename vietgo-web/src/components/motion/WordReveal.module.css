@@ -1,0 +1,18 @@
+.word {
+  opacity: 0.15;
+  transition: opacity 0.6s ease;
+}
+
+.visible .word {
+  opacity: 1;
+}
+
+.visible .soft {
+  opacity: 0.55;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    opacity: 1;
+  }
+}

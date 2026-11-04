@@ -1,0 +1,38 @@
+.floating {
+  position: fixed;
+  right: clamp(16px, 2.4vw, 32px);
+  bottom: clamp(16px, 2.4vw, 32px);
+  z-index: 90;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(24px);
+  transition:
+    opacity 0.4s,
+    transform 0.6s var(--ease-out);
+}
+
+.shown {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.floating > a {
+  box-shadow: 0 10px 30px rgb(30 26 16 / 22%);
+}
+
+/* The outline pill gets a frosted cream fill so it reads over photos and paper alike. */
+.secondary {
+  border-color: rgb(68 62 43 / 40%);
+  background: rgb(248 232 197 / 75%);
+  color: var(--sd-ink);
+  backdrop-filter: blur(10px);
+}
+
+@media (width <= 560px) {
+  .secondary {
+    display: none;
+  }
+}

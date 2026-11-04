@@ -5,23 +5,55 @@
 }
 
 .card {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 18px;
   padding: 28px;
-  border-radius: var(--radius);
-  background: var(--color-white);
+  border: 1px solid rgb(166 143 111 / 55%);
+  border-radius: 0;
+  background: transparent;
+  isolation: isolate;
+}
+
+/* On hover the card fills with ink from the bottom up and its text turns cream. */
+.card::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: '';
+  background: var(--sd-ink);
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.5s var(--ease-out);
+}
+
+.card:hover::before {
+  transform: none;
+}
+
+.card > *,
+.card p {
+  transition:
+    color 0.3s,
+    border-color 0.3s;
+}
+
+.card:hover > *,
+.card:hover p {
+  border-color: var(--sd-cream);
+  color: var(--sd-cream);
 }
 
 .card h3 {
   margin-bottom: 8px;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 500;
 }
 
 .card p {
   font-size: 14.5px;
-  color: var(--color-green);
+  color: var(--sd-muted);
 }
 
 @media (width <= 960px) {

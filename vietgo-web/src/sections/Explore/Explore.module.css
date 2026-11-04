@@ -1,0 +1,123 @@
+.explore {
+  padding: clamp(80px, 10vw, 150px) 0;
+  background: var(--sd-forest);
+  color: var(--sd-cream);
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: start;
+  gap: clamp(40px, 6vw, 96px);
+}
+
+.text h2 {
+  margin-top: 24px;
+}
+
+.text em {
+  color: var(--sd-gold);
+}
+
+.lead {
+  max-width: 440px;
+  margin-top: 28px;
+  font-size: 17px;
+  line-height: 1.55;
+  opacity: 0.9;
+}
+
+.services {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 32px;
+  margin-top: 48px;
+}
+
+.service {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  padding: 20px 0 22px;
+}
+
+.num {
+  padding-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--sd-gold);
+}
+
+:global(.landing) .service h3 {
+  font-size: 24px;
+}
+
+.service p {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+/* A tall photo with a smaller one overlapping its corner, the small one moving faster. */
+.media {
+  position: relative;
+  padding-bottom: 80px;
+}
+
+.main {
+  height: clamp(460px, 52vw, 720px);
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.thumbWrap {
+  position: absolute;
+  bottom: 0;
+  left: -64px;
+  width: 44%;
+}
+
+.thumb {
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 6px solid var(--sd-cream);
+  border-radius: 8px;
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .thumbWrap {
+      animation: float-up linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+@keyframes float-up {
+  from {
+    translate: 0 120px;
+  }
+
+  to {
+    translate: 0 -120px;
+  }
+}
+
+@media (width <= 960px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .thumbWrap {
+    left: auto;
+    right: 16px;
+  }
+}
+
+@media (width <= 560px) {
+  .services {
+    grid-template-columns: 1fr;
+  }
+}

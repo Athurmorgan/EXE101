@@ -1,0 +1,57 @@
+.media {
+  position: relative;
+  height: 100%;
+  clip-path: inset(100% 0 0 0);
+  transform: translateY(48px);
+  transition:
+    clip-path 1.2s var(--ease-out) var(--delay, 0ms),
+    transform 1.2s var(--ease-out) var(--delay, 0ms);
+}
+
+:where(.media) img {
+  transform: scale(1.18);
+  transition: transform 1.6s var(--ease-out) var(--delay, 0ms);
+}
+
+.visible .media {
+  clip-path: inset(0);
+  transform: none;
+}
+
+:where(.visible .media) img {
+  transform: none;
+}
+
+/*
+ * Scroll-driven drift: the browser ties it to the scroll position on the compositor, so it costs no
+ * script while scrolling. Browsers without view timelines simply keep the photo still.
+ */
+@supports (animation-timeline: view()) {
+  .parallax :where(img) {
+    animation: drift linear both;
+    animation-timeline: view();
+  }
+}
+
+@keyframes drift {
+  /* The extra scale keeps the frame covered while the photo slides. */
+  from {
+    translate: 0 -7%;
+    scale: 1.16;
+  }
+
+  to {
+    translate: 0 7%;
+    scale: 1.16;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .media,
+  :where(.media) img {
+    clip-path: none;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+}

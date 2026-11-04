@@ -4,13 +4,13 @@
 
 .muted {
   max-width: 360px;
-  color: var(--color-muted);
+  color: var(--sd-muted);
 }
 
 .green {
   max-width: 480px;
   margin-top: 16px;
-  color: var(--color-green);
+  color: var(--sd-muted);
 }
 
 .light {

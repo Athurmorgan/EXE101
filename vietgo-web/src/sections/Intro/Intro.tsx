@@ -1,10 +1,8 @@
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Reveal } from '@/components/motion/Reveal';
-import { ScrubText } from '@/components/motion/ScrubText';
+import { WordReveal } from '@/components/motion/WordReveal';
 import { Section } from '@/components/layout/Section';
-
-const STATEMENT =
-  'Vietnam moves to a hundred rhythms a day. vivivu gathers the people, places and payments of a whole country into one calm, trusted app, so every moment feels closer than you think.';
+import styles from './Intro.module.css';
 
 export function Intro() {
   return (
@@ -12,7 +10,11 @@ export function Intro() {
       <Reveal>
         <Eyebrow>Why vivivu</Eyebrow>
       </Reveal>
-      <ScrubText text={STATEMENT} />
+      <WordReveal
+        className={styles.statement}
+        text="Vietnam moves to a hundred rhythms a day. vivivu gathers the people, places and payments of a whole country into one calm, trusted app,"
+        softText="so every moment feels closer than you think."
+      />
     </Section>
   );
 }

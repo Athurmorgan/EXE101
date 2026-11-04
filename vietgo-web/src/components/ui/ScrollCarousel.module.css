@@ -32,15 +32,15 @@
 
 .progress {
   flex: 1;
-  height: 2px;
-  background: rgb(22 33 29 / 15%);
+  height: 1px;
+  background: rgb(43 38 32 / 15%);
 }
 
 .progress span {
   display: block;
   width: 100%;
   height: 100%;
-  background: var(--color-ink);
+  background: var(--sd-ink);
   transform-origin: left;
   transition: transform 0.2s;
 }
@@ -55,7 +55,7 @@
   width: 48px;
   height: 48px;
   place-items: center;
-  border: 1px solid rgb(22 33 29 / 25%);
+  border: 1px solid rgb(43 38 32 / 25%);
   border-radius: 50%;
   transition:
     background 0.2s,
@@ -64,8 +64,8 @@
 }
 
 .buttons button:not(:disabled):hover {
-  background: var(--color-ink);
-  color: var(--color-white);
+  background: var(--sd-ink);
+  color: var(--sd-cream);
 }
 
 .buttons button:disabled {

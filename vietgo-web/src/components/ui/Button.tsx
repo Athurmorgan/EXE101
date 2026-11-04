@@ -6,7 +6,7 @@ import { Icon, type IconName } from './Icon';
 interface ButtonProps {
   href: string;
   children: ReactNode;
-  variant?: 'red' | 'white' | 'dark';
+  variant?: 'red' | 'white' | 'dark' | 'glass' | 'outline' | 'gold';
   size?: 'md' | 'sm';
   /** Icon shown before the label (e.g. a store logo). */
   leadingIcon?: IconName;

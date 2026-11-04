@@ -1,110 +1,287 @@
 .hero {
   position: relative;
-  display: flex;
-  align-items: flex-end;
-  min-height: max(100svh, 680px);
-  overflow: hidden;
-  background: #0c1c2c;
-  color: var(--color-white);
 }
 
+/* The cream sheet holding the headline. It sits above the pinned photo and scrolls up off it. */
+.sheet {
+  position: relative;
+  z-index: 2;
+  padding: 150px 0 72px;
+  background: var(--sd-cream);
+}
+
+/* A small cream tab hanging from the sheet over the photo, like the reference's notch. */
+.notch {
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 50%;
+  width: 64px;
+  height: 28px;
+  border-radius: 0 0 14px 14px;
+  background: var(--sd-cream);
+  transform: translateX(-50%);
+}
+
+/* Three lines set on a 12-column grid, each starting further right. */
+:global(.landing) .title {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  font-size: clamp(48px, 7.2vw, 104px);
+  line-height: 1;
+}
+
+.title em {
+  color: var(--sd-gold-deep);
+}
+
+.line1 {
+  grid-column: 1 / -1;
+}
+
+.line2 {
+  grid-column: 3 / -1;
+}
+
+.line3 {
+  grid-column: 5 / -1;
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: start;
+  gap: 24px;
+  margin-top: 56px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.9s,
+    transform 1.2s var(--ease-out);
+  transition-delay: 0.55s;
+}
+
+.intro > :first-child {
+  grid-column: 1 / 5;
+  padding-top: 4px;
+}
+
+.intro p {
+  grid-column: 7 / 12;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.ready .intro {
+  opacity: 1;
+  transform: none;
+}
+
+/* The photo stays pinned for an extra stretch while the next section rises over it. */
+.stage {
+  height: calc(100svh + 40vh);
+}
+
+.frame {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  background: var(--sd-forest);
+}
+
+/* Slides crossfade; the current one also drifts in slowly (a gentle Ken Burns). */
 .photo {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.12);
+  transition:
+    opacity 1.6s ease,
+    transform 7.5s linear;
 }
 
-.shade {
+.current {
+  opacity: 1;
+  transform: scale(1.02);
+}
+
+.frame::after {
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgb(4 12 18 / 55%) 0%, rgb(4 12 18 / 0%) 28%),
-    linear-gradient(0deg, rgb(4 12 18 / 88%) 0%, rgb(4 12 18 / 45%) 40%, rgb(4 12 18 / 0%) 75%);
+  background: linear-gradient(0deg, rgb(30 26 16 / 45%) 0%, rgb(30 26 16 / 0%) 35%);
+  content: '';
 }
 
-.container {
-  position: relative;
-  width: min(var(--container-width), 100% - 48px);
+.caption {
+  position: absolute;
+  right: clamp(24px, 4vw, 56px);
+  bottom: clamp(24px, 4vw, 48px);
+  left: clamp(24px, 4vw, 56px);
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sd-cream);
 }
 
-.content {
-  padding: 140px 0 150px;
+.place {
+  animation: caption-in 0.9s var(--ease-out) both;
+}
+
+/* A thin line that runs down, inviting a scroll. */
+.scrollCue {
+  position: absolute;
+  bottom: clamp(24px, 4vw, 48px);
+  left: 50%;
+  z-index: 1;
+  padding-bottom: 56px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--sd-cream);
+  transform: translateX(-50%);
+}
+
+.scrollCue::after {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  height: 44px;
+  background: currentcolor;
+  content: '';
+  animation: cue 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+
+  50.1% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
 }
 
 /*
- * Ink-brush lettering. The shadow is a filter on the heading itself (not text-shadow on the masked
- * lines, which the reveal mask would clip into a visible box) so it follows the letter shapes.
+ * As the sheet slides away the photo opens from a rounded inset to full bleed; as the next section
+ * covers it, it dims. The headline lifts away a little faster than the page. Scroll-driven CSS
+ * runs on the compositor, so no script follows the scroll.
  */
-.title {
-  margin-top: 8px;
-  font-family: var(--font-brush);
-  font-size: clamp(48px, 8.4vw, 116px);
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  filter: drop-shadow(0 2px 18px rgb(0 0 0 / 45%));
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .stage {
+      view-timeline: --hero-stage block;
+    }
+
+    .frame {
+      animation: frame-open linear both;
+      animation-timeline: --hero-stage;
+      animation-range: entry 0% exit 100%;
+    }
+
+    .content {
+      animation: sheet-lift linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 70vh;
+    }
+  }
 }
 
-.bottom {
-  position: absolute;
-  right: 0;
-  bottom: 32px;
-  left: 0;
-}
-
-.sub {
-  max-width: 520px;
-  margin-top: 28px;
-  font-size: 19px;
-  color: rgb(255 255 255 / 90%);
-}
-
-.scroll {
-  position: absolute;
-  right: 24px;
-  bottom: 36px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 14px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  writing-mode: vertical-rl;
-}
-
-.scrollLine {
-  position: relative;
-  width: 1px;
-  height: 64px;
-  overflow: hidden;
-  background: rgb(255 255 255 / 30%);
-}
-
-.scrollLine::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--color-white);
-  animation: scroll-line 2s var(--ease-out) infinite;
-}
-
-@keyframes scroll-line {
-  from {
-    transform: translateY(-100%);
+@keyframes frame-open {
+  0% {
+    clip-path: inset(7% 5% 0 5% round 28px);
   }
 
+  30%,
+  65% {
+    clip-path: inset(0 round 0);
+    filter: brightness(1);
+  }
+
+  100% {
+    clip-path: inset(0 round 0);
+    filter: brightness(0.5);
+  }
+}
+
+@keyframes sheet-lift {
   to {
-    transform: translateY(100%);
+    opacity: 0.15;
+    translate: 0 -100px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .photo {
+    transition: none;
+  }
+
+  .intro {
+    opacity: 1;
+    transform: none;
+  }
+
+  .scrollCue::after,
+  .place {
+    animation: none;
   }
 }
 
 @media (width <= 960px) {
-  .content {
-    padding-bottom: 110px;
+  .sheet {
+    padding: 120px 0 56px;
   }
 
-  .scroll {
+  .line2 {
+    grid-column: 2 / -1;
+  }
+
+  .line3 {
+    grid-column: 3 / -1;
+  }
+
+  .intro > :first-child,
+  .intro p {
+    grid-column: 1 / -1;
+  }
+
+  .intro {
+    gap: 14px;
+    margin-top: 36px;
+  }
+
+  .stage {
+    height: calc(100svh + 20vh);
+  }
+
+  .scrollCue {
     display: none;
   }
 }

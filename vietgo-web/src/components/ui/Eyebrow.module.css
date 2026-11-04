@@ -4,24 +4,26 @@
   gap: 10px;
   margin-bottom: 20px;
   font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.24em;
   text-transform: uppercase;
 }
 
+/* Default label on the cream page, framed by small stars as on an engraved plate. */
 .red {
-  color: var(--color-red-dark);
+  color: var(--sd-muted);
 }
 
-.red::before {
-  content: '';
-  width: 22px;
-  height: 2px;
-  background: var(--color-red);
+.red::before,
+.red::after {
+  content: '✦ ✦ ✦';
+  font-size: 7px;
+  letter-spacing: 0.2em;
+  color: var(--sd-tan);
 }
 
 .mint {
-  color: var(--color-mint);
+  color: rgb(255 255 255 / 75%);
 }
 
 .light {

@@ -1,0 +1,75 @@
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: var(--sd-cream);
+  color: var(--sd-ink);
+  transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* The gold hairline fills across the top while the page loads. */
+.bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--sd-gold);
+  transform-origin: left;
+  animation: fill 1.6s cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.mark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-style: italic;
+  animation: appear 0.8s var(--ease-out) both;
+}
+
+.wheel {
+  width: 56px;
+  height: 56px;
+  animation: spin 2.4s linear infinite;
+}
+
+/* The whole sheet slides up and away, uncovering the hero underneath. */
+.lifting {
+  transform: translateY(-100%);
+}
+
+.lifting .mark {
+  opacity: 0;
+  transform: translateY(-24px);
+  transition:
+    opacity 0.4s,
+    transform 0.6s var(--ease-out);
+}
+
+@keyframes fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

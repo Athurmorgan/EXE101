@@ -1,0 +1,88 @@
+.deck {
+  display: none;
+}
+
+@media (width >= 961px) and (prefers-reduced-motion: no-preference) {
+  .pin {
+    height: var(--pin-height);
+  }
+
+  .stage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100vh;
+  }
+
+  .layout {
+    position: relative;
+  }
+
+  /* Hidden until the script takes over, so without it only the layout shows. */
+  .deck {
+    position: absolute;
+    inset: 0;
+    display: block;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/* A dealt card: the full content width, clear of the fixed header. */
+.card {
+  position: absolute;
+  top: 120px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 180px);
+  overflow: hidden;
+  background: var(--color-dark);
+  box-shadow: 0 30px 60px -20px rgb(20 16 10 / 45%);
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+}
+
+.caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 160px clamp(24px, 4vw, 56px) clamp(24px, 4vw, 56px);
+  background: linear-gradient(0deg, rgb(0 0 0 / 55%) 0%, rgb(0 0 0 / 0%) 100%);
+  color: var(--color-white);
+}
+
+.count {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.26em;
+}
+
+:global(.landing) .caption h3 {
+  font-size: clamp(44px, 6vw, 96px);
+  line-height: 1;
+  text-shadow: 0 2px 24px rgb(0 0 0 / 30%);
+}
+
+.caption p {
+  max-width: 44ch;
+  margin-top: 14px;
+  font-size: 17px;
+  color: rgb(255 255 255 / 88%);
+}

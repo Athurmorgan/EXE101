@@ -31,7 +31,7 @@ const GUARANTEES: readonly Guarantee[] = [
 
 export function Trust() {
   return (
-    <Section>
+    <Section id="trust">
       <SectionHeader
         split
         eyebrow="Trust is the infrastructure"

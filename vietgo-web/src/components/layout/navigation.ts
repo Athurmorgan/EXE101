@@ -5,9 +5,9 @@ export interface NavLink {
 
 export const NAV_LINKS: readonly NavLink[] = [
   { label: 'Explore', href: '#explore' },
-  { label: 'Journeys', href: '#journey' },
+  { label: 'Journeys', href: '#journeys' },
   { label: 'Destinations', href: '#places' },
-  { label: 'Safety', href: '#trust' },
+  { label: 'Safety', href: '#safety' },
 ];
 
 export const FOOTER_LINKS: readonly NavLink[] = [

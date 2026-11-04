@@ -1,19 +1,26 @@
 import { useState } from 'react';
-import { CurtainReveal } from '@/components/motion/CurtainReveal';
 import { Icon } from '@/components/ui/Icon';
 import { Image } from '@/components/ui/Image';
-import { Reveal } from '@/components/motion/Reveal';
+import { MediaReveal } from '@/components/motion/MediaReveal';
+import { StackRun } from '@/components/motion/StackRun';
 import { Section } from '@/components/layout/Section';
 import { SectionHeader } from '@/components/layout/SectionHeader';
 import { cx } from '@/utils/cx';
 import { DESTINATIONS } from './destinations';
 import styles from './Places.module.css';
 
+const STACK = DESTINATIONS.map(({ name, tagline, image }) => ({
+  key: name,
+  image,
+  title: name,
+  caption: tagline,
+}));
+
 export function Places() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <Section>
+    <Section id="places">
       <SectionHeader
         eyebrow="Closer to every place"
         title={
@@ -27,7 +34,7 @@ export function Places() {
         leadTone="green"
       />
 
-      <Reveal>
+      <StackRun items={STACK}>
         <ul className={styles.panels}>
           {DESTINATIONS.map(({ name, tagline, description, image }, index) => (
             <li
@@ -36,25 +43,25 @@ export function Places() {
               onMouseEnter={() => setActiveIndex(index)}
               onFocus={() => setActiveIndex(index)}
             >
-              <a href="/app/discover" className={styles.link}>
-                <CurtainReveal delay={index * 110} className={styles.photoFrame}>
+              <MediaReveal delay={index * 90} className={styles.reveal}>
+                <a href="/app/discover" className={styles.link}>
                   <Image image={image} decorative className={styles.photo} />
-                </CurtainReveal>
-                <div className={styles.shade} />
-                <div className={styles.content}>
-                  <h3>{name}</h3>
-                  <div className={styles.details}>
-                    <p className={styles.tagline}>
-                      {tagline} <Icon name="arrow" />
-                    </p>
-                    <p>{description}</p>
+                  <div className={styles.shade} />
+                  <div className={styles.content}>
+                    <h3>{name}</h3>
+                    <div className={styles.details}>
+                      <p className={styles.tagline}>
+                        {tagline} <Icon name="arrow" />
+                      </p>
+                      <p>{description}</p>
+                    </div>
                   </div>
-                </div>
-              </a>
+                </a>
+              </MediaReveal>
             </li>
           ))}
         </ul>
-      </Reveal>
+      </StackRun>
     </Section>
   );
 }

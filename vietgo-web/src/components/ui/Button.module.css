@@ -6,14 +6,21 @@
   font-weight: 500;
   white-space: nowrap;
   transition:
-    transform 0.15s,
-    box-shadow 0.15s,
+    opacity 0.15s,
     background 0.15s;
 }
 
 .button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgb(0 0 0 / 22%);
+  opacity: 0.88;
+}
+
+/* The trailing arrow nudges toward where the link goes. */
+.button > svg:last-child:not(:first-child) {
+  transition: transform 0.3s var(--ease-out);
+}
+
+.button:hover > svg:last-child:not(:first-child) {
+  transform: translate(2px, -2px);
 }
 
 .md {
@@ -41,6 +48,36 @@
 }
 
 .dark {
-  background: var(--color-dark);
+  background: var(--sd-ink);
+  color: var(--sd-cream);
+}
+
+/* Hairline pill that takes its colour from the surrounding text. */
+.outline {
+  border: 1px solid currentcolor;
+  background: transparent;
+}
+
+/* Translucent pill for use over photos. */
+.glass {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-fill);
   color: var(--color-white);
+  backdrop-filter: var(--glass-blur);
+}
+
+.glass:hover {
+  opacity: 1;
+  background: rgb(255 255 255 / 24%);
+}
+
+/* Wine-gold pill with ink text, the landing's main call to action. */
+.gold {
+  background: var(--sd-gold);
+  color: var(--sd-ink);
+}
+
+.gold:hover {
+  opacity: 1;
+  background: var(--sd-gold-light);
 }

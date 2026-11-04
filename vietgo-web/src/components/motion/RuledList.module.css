@@ -1,0 +1,49 @@
+.row {
+  position: relative;
+  overflow: hidden;
+}
+
+/* The hairline; it takes the surrounding text colour, softened. */
+.row::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: currentcolor;
+  opacity: 0.35;
+  transform: scaleX(0);
+  transform-origin: left;
+  content: '';
+  transition: transform 1.1s var(--ease-out) var(--delay, 0ms);
+}
+
+.content {
+  opacity: 0;
+  transform: translateY(60%);
+  transition:
+    opacity 0.8s ease calc(var(--delay, 0ms) + 150ms),
+    transform 1s var(--ease-out) calc(var(--delay, 0ms) + 150ms);
+}
+
+.visible .row::before {
+  transform: none;
+}
+
+.visible .content {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row::before,
+  .content {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .row::before {
+    opacity: 0.35;
+  }
+}

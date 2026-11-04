@@ -1,0 +1,42 @@
+.band {
+  padding: clamp(32px, 5vw, 72px) 0;
+  overflow: clip;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  font-family: var(--font-display);
+  font-size: clamp(88px, 12vw, 180px);
+  line-height: 1.1;
+  white-space: nowrap;
+  color: var(--sd-gold);
+}
+
+.phrase {
+  padding-right: 0.25em;
+}
+
+.track em {
+  color: var(--sd-gold-deep);
+}
+
+/* Tied to the scroll position on the compositor: the line slides left while the band passes. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .track {
+      animation: slide linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+@keyframes slide {
+  from {
+    translate: 5vw 0;
+  }
+
+  to {
+    translate: -45% 0;
+  }
+}

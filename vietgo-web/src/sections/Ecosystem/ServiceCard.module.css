@@ -4,52 +4,47 @@
   flex-direction: column;
   justify-content: flex-end;
   aspect-ratio: 4 / 5;
+  padding: 12px;
   overflow: hidden;
-  border-radius: 20px;
+  border-radius: 0;
   background: var(--color-dark);
   color: var(--color-white);
 }
 
-.photoFrame {
+.photo {
   position: absolute;
   inset: 0;
-}
-
-.photo {
   transition: transform 0.9s var(--ease-out);
 }
 
 .card:hover .photo {
-  transform: scale(1.06);
+  transform: scale(1.04);
 }
 
-.shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    0deg,
-    rgb(5 16 13 / 88%) 0%,
-    rgb(5 16 13 / 30%) 55%,
-    transparent 100%
-  );
-}
-
+/* Glass caption floating on the photo. */
 .content {
   position: relative;
-  padding: 28px;
+  padding: 20px;
+  border: 1px solid var(--glass-border);
+  border-radius: 0;
+  background: rgb(255 255 255 / 12%);
+  backdrop-filter: var(--glass-blur);
 }
 
-.content > span {
-  margin-bottom: 22px;
+.icon {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  opacity: 0.85;
 }
 
 .content h3 {
-  margin-bottom: 8px;
-  font-size: 30px;
+  margin-bottom: 6px;
 }
 
 .content p {
-  max-width: 28ch;
-  font-size: 15px;
+  max-width: 26ch;
+  font-size: 14.5px;
+  line-height: 1.45;
   color: rgb(255 255 255 / 85%);
 }

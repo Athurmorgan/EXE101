@@ -1,28 +1,41 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Container } from '@/components/layout/Container';
+import { useNavTone } from '@/hooks/useNavTone';
 import { cx } from '@/utils/cx';
 import styles from './Header.module.css';
 import { Logo } from './Logo';
 import { NAV_LINKS } from './navigation';
-import { ScrollProgress } from './ScrollProgress';
 
-/** Number of links shown to the left of the logo; the rest go to its right. */
-const LEFT_LINK_COUNT = 3;
-const LEFT_LINKS = NAV_LINKS.slice(0, LEFT_LINK_COUNT);
-const RIGHT_LINKS = NAV_LINKS.slice(LEFT_LINK_COUNT);
-
-/** Floating frosted-glass navigation bar. */
+/** Full-width navigation bar: logo, centred links, account actions. */
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const closeMenu = () => setMenuOpen(false);
+  // Cream glass with ink text over the paper; a clear tint with cream text over photos and forest.
+  const dark = useNavTone();
 
   return (
-    <header className={styles.header}>
+    <header className={cx(styles.header, dark && styles.dark)}>
       <Container>
         <div className={styles.glass}>
           <nav aria-label="Main" className={styles.bar}>
-            <div className={styles.side}>
+            <Logo />
+
+            <ul className={styles.links}>
+              {NAV_LINKS.map(({ label, href }) => (
+                <li key={href}>
+                  <a href={href}>{label}</a>
+                </li>
+              ))}
+            </ul>
+
+            <div className={styles.actions}>
+              <Button href="/app/login" size="sm" variant="outline" className={styles.signIn}>
+                Sign in
+              </Button>
+              <Button href="/app/discover" size="sm" variant={dark ? 'gold' : 'dark'}>
+                Open the app
+              </Button>
               <button
                 type="button"
                 className={cx(styles.menuButton, menuOpen && styles.menuButtonOpen)}
@@ -34,40 +47,14 @@ export function Header() {
                 <span />
                 <span />
               </button>
-              <ul className={styles.links}>
-                {LEFT_LINKS.map(({ label, href }) => (
-                  <li key={href}>
-                    <a href={href}>{label}</a>
-                  </li>
-                ))}
-              </ul>
             </div>
-
-            <Logo />
-
-            <ul className={cx(styles.side, styles.sideEnd, styles.links)}>
-              {RIGHT_LINKS.map(({ label, href }) => (
-                <li key={href} className={styles.hideOnMobile}>
-                  <a href={href}>{label}</a>
-                </li>
-              ))}
-              <li className={styles.hideOnMobile}>
-                <a href="/app/login">Sign in</a>
-              </li>
-              <li>
-                <Button href="/app/discover" size="sm" withArrow>
-                  Open the app
-                </Button>
-              </li>
-            </ul>
           </nav>
-          <ScrollProgress />
         </div>
 
         <nav
           id="expanded-menu"
           aria-label="Expanded menu"
-          className={cx(styles.glass, styles.panel, menuOpen && styles.panelOpen)}
+          className={cx(styles.panel, menuOpen && styles.panelOpen)}
           inert={!menuOpen}
         >
           <ul>
@@ -78,6 +65,11 @@ export function Header() {
                 </a>
               </li>
             ))}
+            <li>
+              <a href="/app/login" onClick={closeMenu}>
+                Sign in
+              </a>
+            </li>
           </ul>
         </nav>
       </Container>
