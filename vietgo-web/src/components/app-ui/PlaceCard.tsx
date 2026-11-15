@@ -10,7 +10,7 @@ import { Skeleton } from './Skeleton';
 export function PlaceCard({ place }: { place: Place }) {
   return (
     <Link to={`/app/places/${place.id}`} className="group flex flex-col focus-visible:outline-none">
-      <div className="relative aspect-[4/3] overflow-hidden ring-forest ring-offset-2 ring-offset-cream group-focus-visible:ring-2">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-lg ring-gold-deep ring-offset-2 ring-offset-cream group-focus-visible:ring-2">
         <PlaceCover
           name={place.name}
           url={place.photos?.[0]?.url}
@@ -50,7 +50,7 @@ export function PlaceCard({ place }: { place: Place }) {
 export function PlaceCardSkeleton() {
   return (
     <div>
-      <Skeleton className="aspect-[4/3] w-full" />
+      <Skeleton className="aspect-[4/3] w-full rounded-lg" />
       <Skeleton className="mt-4 h-3 w-24" />
       <Skeleton className="mt-3 h-5 w-3/4" />
       <Skeleton className="mt-3 h-3 w-full" />

@@ -11,9 +11,10 @@ export function Badge({ children, tone = 'mint', className }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider',
-        tone === 'mint' && 'bg-mint text-forest',
-        tone === 'dark' && 'bg-dark text-cream',
+        'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider',
+        // `mint` is the historical name for the default accent, now the landing's light gold.
+        tone === 'mint' && 'bg-gold-light text-ink',
+        tone === 'dark' && 'bg-ink text-cream',
         tone === 'outline' && 'border border-current',
         className,
       )}

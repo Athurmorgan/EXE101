@@ -38,7 +38,7 @@ export function AdminPage() {
       />
       <Container className="py-10 sm:py-12">
         {tabs.length > 1 && (
-          <div role="tablist" aria-label="Console sections" className="mb-10 inline-flex border border-ink/15 bg-white p-1">
+          <div role="tablist" aria-label="Console sections" className="mb-10 inline-flex rounded-full border border-ink/25 bg-white p-1">
             {tabs.map((t) => (
               <button
                 key={t.id}
@@ -47,8 +47,8 @@ export function AdminPage() {
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
                 className={cn(
-                  'h-9 px-5 text-sm font-medium transition-colors',
-                  tab === t.id ? 'bg-dark text-cream' : 'text-muted hover:text-ink',
+                  'h-9 rounded-full px-5 text-sm font-medium transition-colors',
+                  tab === t.id ? 'bg-ink text-cream' : 'text-muted hover:text-ink',
                 )}
               >
                 {t.label}

@@ -14,7 +14,7 @@ export function PostCard({ post, className }: { post: Post; className?: string }
         <p className="flex items-center gap-2 text-xs text-muted">
           <span
             aria-hidden
-            className="flex h-6 w-6 items-center justify-center bg-forest/10 text-[10px] font-semibold text-forest"
+            className="flex h-6 w-6 items-center justify-center rounded-full bg-gold-light text-[10px] font-bold text-ink"
           >
             {initials(author)}
           </span>
@@ -34,7 +34,7 @@ export function PostCard({ post, className }: { post: Post; className?: string }
           src={cover.thumbnail ?? cover.url}
           alt=""
           loading="lazy"
-          className="aspect-[4/3] w-full object-cover sm:order-last"
+          className="aspect-[4/3] w-full rounded-lg object-cover sm:order-last"
         />
       )}
     </article>

@@ -8,6 +8,7 @@ import { PlaceCard, PlaceCardSkeleton } from '@/components/app-ui/PlaceCard';
 import { Input } from '@/components/app-ui/Input';
 import { Chip } from '@/components/app-ui/Chip';
 import { Button } from '@/components/app-ui/Button';
+import { EmptyState } from '@/components/app-ui/EmptyState';
 import { RegionSelect } from '@/components/app-ui/RegionSelect';
 
 const CATEGORIES: { value: string | undefined; label: string }[] = [
@@ -45,13 +46,13 @@ export function DiscoverPage() {
 
   return (
     <>
-      <section className="border-b border-ink/10">
-        <Container className="py-12 sm:py-16">
-          <p className="text-xs font-medium tracking-wider text-muted uppercase">Discover Vietnam</p>
-          <h1 className="mt-3 max-w-2xl font-serif text-4xl leading-[1.05] tracking-tight text-ink sm:text-5xl">
-            Places worth knowing
+      <section className="border-b border-ink/20">
+        <Container className="py-14 sm:py-20">
+          <p className="app-eyebrow">Discover Vietnam</p>
+          <h1 className="mt-5 max-w-2xl font-serif text-[2.75rem] leading-[1.02] tracking-[-0.015em] text-ink sm:text-6xl">
+            Places <em className="italic">worth</em> knowing
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted">
             Local favourites and hidden corners, vetted by people who actually live there.
           </p>
 
@@ -115,18 +116,20 @@ export function DiscoverPage() {
             ))}
           </div>
         ) : places.length === 0 ? (
-          <div className="flex flex-col items-center border border-dashed border-ink/15 px-6 py-20 text-center">
-            <SearchX className="h-8 w-8 text-muted" aria-hidden />
-            <h2 className="mt-4 font-serif text-2xl text-ink">No places match</h2>
-            <p className="mt-2 max-w-sm text-sm text-muted">
-              Try a different name, or widen the filters.
-            </p>
-            {hasFilters && (
-              <Button variant="outline" className="mt-6" onClick={resetFilters}>
-                Clear filters
-              </Button>
-            )}
-          </div>
+          <EmptyState
+            icon={SearchX}
+            title="No places match"
+            className="py-20"
+            action={
+              hasFilters && (
+                <Button variant="outline" onClick={resetFilters}>
+                  Clear filters
+                </Button>
+              )
+            }
+          >
+            Try a different name, or widen the filters.
+          </EmptyState>
         ) : (
           <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {places.map((place) => (

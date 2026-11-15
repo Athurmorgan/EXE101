@@ -26,9 +26,9 @@ export function PlaceCover({ name, url, className, compact = false }: PlaceCover
     <div
       role="img"
       aria-label={`${name} — no photo yet`}
-      className={cn('relative flex items-center justify-center bg-forest/[0.07]', className)}
+      className={cn('relative flex items-center justify-center bg-ink/[0.06]', className)}
     >
-      <span className={cn('font-serif text-forest/20', compact ? 'text-3xl' : 'text-6xl')}>{initial}</span>
+      <span className={cn('font-serif italic text-tan/60', compact ? 'text-3xl' : 'text-6xl')}>{initial}</span>
       {!compact && (
         <span className="absolute right-3 bottom-3 inline-flex items-center gap-1 text-[11px] text-muted/70">
           <ImageOff className="h-3 w-3" aria-hidden />

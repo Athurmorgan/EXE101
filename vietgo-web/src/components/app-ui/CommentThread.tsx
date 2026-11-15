@@ -31,7 +31,7 @@ export function CommentThread({ target }: { target: CommentTarget }) {
         {status === 'authenticated' ? (
           <CommentForm onSubmit={(content) => add(content)} />
         ) : (
-          <p className="border border-ink/10 bg-white px-4 py-3 text-sm text-muted">
+          <p className="rounded-lg border border-ink/15 bg-white px-4 py-3 text-sm text-muted">
             <Link to="/app/login" state={{ from: location }} className="font-medium text-ink underline underline-offset-4">
               Sign in
             </Link>{' '}
@@ -103,7 +103,7 @@ function CommentItem({
     <article className="flex gap-3">
       <span
         aria-hidden
-        className="flex h-9 w-9 shrink-0 items-center justify-center bg-forest/10 text-xs font-semibold text-forest"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-light text-xs font-bold text-ink"
       >
         {initials(comment.authorName)}
       </span>

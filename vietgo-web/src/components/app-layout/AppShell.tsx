@@ -16,15 +16,19 @@ const NAV = [
 ];
 
 function navClass({ isActive }: { isActive: boolean }): string {
+  // Icons carry the link on phones; the label and its drawn hairline take over from `md`.
   return cn(
-    'inline-flex h-9 items-center gap-2 px-2.5 text-sm transition-colors sm:px-3',
-    isActive ? 'bg-cream/10 text-cream' : 'text-cream/60 hover:text-cream',
+    'app-navlink inline-flex h-9 items-center gap-2 text-ink',
+    'max-md:rounded-full max-md:px-2.5 max-md:after:hidden',
+    isActive && 'max-md:bg-ink/10',
   );
 }
 
-/** Top bar + content outlet for every page under `/app/*`. Deliberately not
- * the cinematic landing Header — functional screens need to be fast and
- * legible, not scroll-animated. The logo goes back to the landing page. */
+/**
+ * Floating glass bar + content outlet for every page under `/app/*`. Same
+ * pill as the landing Header, minus its scroll choreography — functional
+ * screens need to be fast and legible. The logo goes back to the landing.
+ */
 export function AppShell() {
   const { status, isStaff } = useAuth();
   const { pathname } = useLocation();
@@ -36,21 +40,21 @@ export function AppShell() {
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-cream text-ink">
-      <header className="sticky top-0 z-40 bg-dark text-cream">
-        <Container className="flex h-16 items-center gap-3 sm:gap-6">
-          <Logo tone="light" />
+    <div className="app-surface flex min-h-screen flex-col">
+      <header className="sticky top-3 z-40 px-3 sm:top-4 sm:px-5">
+        <div className="app-glass mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-3 sm:gap-8 sm:px-5">
+          <Logo />
 
-          <nav aria-label="Main" className="flex min-w-0 items-center gap-0.5 overflow-x-auto">
+          <nav aria-label="Main" className="flex min-w-0 items-center gap-1 overflow-x-auto md:gap-8">
             {NAV.map(({ to, label, icon: Icon }) => (
               <NavLink key={to} to={to} className={navClass} title={label}>
-                <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                <Icon className="h-4 w-4 shrink-0 md:hidden" aria-hidden />
                 <span className="hidden md:inline">{label}</span>
               </NavLink>
             ))}
             {isStaff && (
               <NavLink to="/app/admin" className={navClass} title="Admin">
-                <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden />
+                <ShieldCheck className="h-4 w-4 shrink-0 md:hidden" aria-hidden />
                 <span className="hidden md:inline">Admin</span>
               </NavLink>
             )}
@@ -64,7 +68,7 @@ export function AppShell() {
                 <Link
                   to="/app/login"
                   state={{ from: { pathname } }}
-                  className="hidden text-sm text-cream/80 transition-colors hover:text-cream sm:inline"
+                  className="app-navlink hidden text-ink sm:inline-flex"
                 >
                   Sign in
                 </Link>
@@ -74,24 +78,28 @@ export function AppShell() {
               </>
             )}
           </div>
-        </Container>
+        </div>
       </header>
 
-      <main className="flex-1">
+      {/* Pull the content up under the floating bar so pages keep their own top spacing. */}
+      <main className="-mt-16 flex-1 pt-16 sm:-mt-20 sm:pt-20">
         <Outlet />
       </main>
 
-      <footer className="border-t border-ink/10">
-        <Container className="flex flex-col gap-4 py-10 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-          <Logo />
-          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-            <Link to="/app/discover" className="hover:text-ink">Discover</Link>
-            <Link to="/app/community" className="hover:text-ink">Community</Link>
-            <Link to="/app/trips" className="hover:text-ink">Plan a trip</Link>
-            <Link to="/app/places/new" className="hover:text-ink">Suggest a place</Link>
-            <Link to="/" className="hover:text-ink">About vivivu</Link>
+      <footer className="border-t border-ink/20">
+        <Container className="flex flex-col gap-6 py-12 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <Logo />
+            <p className="mt-2 font-serif italic text-ink/70">Every rhythm of Vietnam.</p>
+          </div>
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-3">
+            <Link to="/app/discover" className="app-navlink text-ink">Discover</Link>
+            <Link to="/app/community" className="app-navlink text-ink">Community</Link>
+            <Link to="/app/trips" className="app-navlink text-ink">Plan a trip</Link>
+            <Link to="/app/places/new" className="app-navlink text-ink">Suggest a place</Link>
+            <Link to="/" className="app-navlink text-ink">About vivivu</Link>
           </nav>
-          <span className="text-xs">© {new Date().getFullYear()} vivivu</span>
+          <span className="text-xs tracking-wider">© {new Date().getFullYear()} vivivu</span>
         </Container>
       </footer>
     </div>

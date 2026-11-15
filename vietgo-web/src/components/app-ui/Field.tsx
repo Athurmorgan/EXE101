@@ -9,9 +9,9 @@ import { cn } from '@/lib/cn';
 
 /** Same border/focus treatment as `Input`, shared by the textarea and select below. */
 export const FIELD_CLASSES = cn(
-  'w-full border border-ink/15 bg-white px-3.5 text-sm text-ink transition-colors',
-  'placeholder:text-muted/70 hover:border-ink/30',
-  'focus:border-forest focus:ring-2 focus:ring-forest/15 focus:outline-none',
+  'w-full rounded-lg border border-ink/25 bg-white px-3.5 text-sm text-ink transition-colors',
+  'placeholder:text-muted/70 hover:border-ink/50',
+  'focus:border-gold-deep focus:ring-2 focus:ring-gold/30 focus:outline-none',
   'disabled:cursor-not-allowed disabled:opacity-60',
 );
 

@@ -212,9 +212,9 @@ function DayPlan({ items }: { items: ShortlistItem[] }) {
   const onBuild = () => void build.run(items.map((i) => i.placeId), startHour);
 
   return (
-    <aside className="self-start border border-ink/10 bg-white p-6 lg:sticky lg:top-24">
+    <aside className="self-start rounded-lg border border-ink/15 bg-white p-6 lg:sticky lg:top-28">
       <h2 className="flex items-center gap-2 font-serif text-2xl text-ink">
-        <CalendarClock className="h-5 w-5 text-forest" aria-hidden /> Day plan
+        <CalendarClock className="h-5 w-5 text-gold-deep" aria-hidden /> Day plan
       </h2>
       <p className="mt-2 text-sm text-muted">Turn these places into a route for one day, with meals in the right slots.</p>
 

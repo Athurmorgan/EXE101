@@ -9,7 +9,7 @@ export function Logo({ tone = 'dark', to = '/' }: { tone?: 'dark' | 'light'; to?
       to={to}
       aria-label="vivivu home"
       className={cn(
-        'group inline-flex shrink-0 items-center gap-2 text-lg font-medium tracking-tight',
+        'group inline-flex shrink-0 items-center gap-2 font-serif text-xl tracking-tight',
         tone === 'light' ? 'text-cream' : 'text-ink',
       )}
     >

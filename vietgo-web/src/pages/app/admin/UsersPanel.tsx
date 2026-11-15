@@ -16,7 +16,7 @@ const ROLES: Role[] = ['USER', 'MANAGER', 'ADMIN'];
 const STATUSES: UserStatus[] = ['ACTIVE', 'PENDING', 'SUSPENDED', 'DELETED'];
 
 const STATUS_TONE: Record<string, string> = {
-  ACTIVE: 'bg-mint text-forest',
+  ACTIVE: 'bg-gold-light text-ink',
   PENDING: 'bg-ink/5 text-muted',
   SUSPENDED: 'bg-red/10 text-red-dark',
   DELETED: 'bg-ink text-cream',
@@ -133,7 +133,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span
             aria-hidden
-            className="flex h-10 w-10 shrink-0 items-center justify-center bg-forest/10 text-xs font-semibold text-forest"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-light text-xs font-bold text-ink"
           >
             {initials(user.fullName)}
           </span>
@@ -141,7 +141,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
             <p className="flex flex-wrap items-center gap-2 text-sm">
               <span className="truncate font-medium text-ink">{user.fullName}</span>
               {isMe && <span className="text-xs text-muted">(you)</span>}
-              <span className={cn('px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase', STATUS_TONE[deleted ? 'DELETED' : user.status])}>
+              <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase', STATUS_TONE[deleted ? 'DELETED' : user.status])}>
                 {deleted ? 'DELETED' : user.status}
               </span>
             </p>
@@ -158,7 +158,7 @@ function UserRow({ user, onChanged }: { user: AdminUser; onChanged: () => void }
             value={user.role}
             disabled={isMe || deleted || busy !== null}
             onChange={(e) => run(() => actions.changeRole(e.target.value as Role))}
-            className="h-9 border border-ink/15 bg-white px-2 text-xs font-medium text-ink disabled:opacity-50"
+            className="h-9 rounded-lg border border-ink/25 bg-white px-2 text-xs font-medium text-ink disabled:opacity-50"
           >
             {ROLES.map((r) => (
               <option key={r} value={r}>

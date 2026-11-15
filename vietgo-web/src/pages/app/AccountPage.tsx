@@ -38,7 +38,7 @@ export function AccountPage() {
       <PageHeader eyebrow="Account" title="Your account" />
       <Container className="py-6 sm:py-10">
         <div className="flex items-center gap-4 pb-10">
-          <span className="flex h-14 w-14 items-center justify-center bg-forest text-lg font-semibold text-cream">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-gold-light font-serif text-xl text-ink">
             {initials(user.fullName)}
           </span>
           <div>
@@ -207,8 +207,8 @@ function SessionsPanel() {
 }
 
 const STORY_STATUS: Record<ModerationStatus, { label: string; tone: string }> = {
-  PENDING: { label: 'In review', tone: 'bg-ink/5 text-muted' },
-  APPROVED: { label: 'Published', tone: 'bg-mint text-forest' },
+  PENDING: { label: 'In review', tone: 'bg-ink/10 text-muted' },
+  APPROVED: { label: 'Published', tone: 'bg-gold-light text-ink' },
   REJECTED: { label: 'Not approved', tone: 'bg-red/10 text-red-dark' },
 };
 
@@ -245,7 +245,7 @@ function MyStoriesPanel() {
               <li key={post.id} className="flex items-start gap-4 py-4">
                 <div className="min-w-0 flex-1">
                   <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
-                    <span className={cn('px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase', status.tone)}>
+                    <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase', status.tone)}>
                       {status.label}
                     </span>
                     <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>

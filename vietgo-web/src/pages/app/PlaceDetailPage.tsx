@@ -176,7 +176,7 @@ export function PlaceDetailPage() {
         </div>
 
         {facts.length > 0 && (
-          <aside className="h-fit border border-ink/10 bg-white lg:sticky lg:top-24">
+          <aside className="h-fit rounded-lg border border-ink/15 bg-white lg:sticky lg:top-28">
             <h2 className="border-b border-ink/10 px-5 py-3 text-xs font-medium tracking-wider text-muted uppercase">
               At a glance
             </h2>

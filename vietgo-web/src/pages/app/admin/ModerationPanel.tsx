@@ -94,7 +94,7 @@ function Queue<T extends { id: string }>({
   return (
     <ul className="mt-6 space-y-4">
       {items.map((item) => (
-        <li key={item.id} className="border border-ink/10 bg-white p-5 sm:p-6">
+        <li key={item.id} className="rounded-lg border border-ink/15 bg-white p-5 sm:p-6">
           {render(item)}
           <Decision decide={(decision, note) => decide(item.id, decision, note)} />
         </li>
@@ -174,7 +174,7 @@ function PostSummary({ post }: { post: Post }) {
         </div>
       )}
       {post.placeId && (
-        <Link to={`/app/places/${post.placeId}`} className="mt-3 inline-block text-xs text-forest underline">
+        <Link to={`/app/places/${post.placeId}`} className="mt-3 inline-block text-xs text-gold-deep underline">
           Linked place
         </Link>
       )}
@@ -201,7 +201,7 @@ function PlaceSummary({ place }: { place: PendingPlace }) {
         href={mapsUrl(place.lat, place.lng)}
         target="_blank"
         rel="noreferrer"
-        className="mt-3 inline-flex items-center gap-1 text-xs text-forest underline"
+        className="mt-3 inline-flex items-center gap-1 text-xs text-gold-deep underline"
       >
         <MapPin className="h-3.5 w-3.5" aria-hidden /> Check the pin on Google Maps
       </a>

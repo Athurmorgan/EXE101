@@ -8,7 +8,7 @@ interface ChipProps {
   children: ReactNode;
 }
 
-/** Toggleable filter pill — square like the rest of the app surface. */
+/** Toggleable filter pill: hairline when idle, solid ink when active. */
 export function Chip({ active = false, onClick, icon, children }: ChipProps) {
   return (
     <button
@@ -16,11 +16,9 @@ export function Chip({ active = false, onClick, icon, children }: ChipProps) {
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        'inline-flex h-9 items-center gap-1.5 border px-3.5 text-sm transition-colors',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-forest',
-        active
-          ? 'border-dark bg-dark text-cream'
-          : 'border-ink/15 bg-white text-ink hover:border-ink/40',
+        'inline-flex h-9 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors',
+        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-deep',
+        active ? 'border-ink bg-ink text-cream' : 'border-ink/25 text-ink hover:border-ink/60',
       )}
     >
       {icon}

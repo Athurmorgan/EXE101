@@ -79,7 +79,7 @@ export function NewPostPage() {
           {publish.error && <Alert>{publish.error}</Alert>}
 
           {placeId && (
-            <p className="flex items-center gap-2 border border-forest/20 bg-forest/5 px-4 py-3 text-sm text-forest">
+            <p className="flex items-center gap-2 rounded-lg border border-gold-deep/30 bg-gold/10 px-4 py-3 text-sm text-ink">
               <MapPin className="h-4 w-4" aria-hidden /> About {placeName ?? 'a place'}
             </p>
           )}

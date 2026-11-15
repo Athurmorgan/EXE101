@@ -48,7 +48,7 @@ export function PostDetailPage() {
             <div className="flex items-center gap-3 text-sm">
               <span
                 aria-hidden
-                className="flex h-10 w-10 items-center justify-center bg-forest/10 text-xs font-semibold text-forest"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-light text-xs font-bold text-ink"
               >
                 {initials(post.author?.fullName ?? 'Traveller')}
               </span>
@@ -68,7 +68,7 @@ export function PostDetailPage() {
             {post.placeId && (
               <Link
                 to={`/app/places/${post.placeId}`}
-                className="mt-4 inline-flex items-center gap-1.5 text-sm text-forest underline underline-offset-4"
+                className="mt-4 inline-flex items-center gap-1.5 text-sm text-gold-deep underline underline-offset-4"
               >
                 <MapPin className="h-4 w-4" aria-hidden /> See the place
               </Link>

@@ -43,9 +43,9 @@ export function GoogleButton({ returnTo, className }: { returnTo?: string; class
 export function OrDivider() {
   return (
     <div className="flex items-center gap-4 text-xs tracking-wider text-muted uppercase" aria-hidden>
-      <span className="h-px flex-1 bg-ink/10" />
+      <span className="h-px flex-1 bg-ink/20" />
       or
-      <span className="h-px flex-1 bg-ink/10" />
+      <span className="h-px flex-1 bg-ink/20" />
     </div>
   );
 }

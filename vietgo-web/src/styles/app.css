@@ -3,25 +3,114 @@
  * place detail, itinerary...). The landing page keeps its own hand-written
  * CSS Modules — see `styles/global.css` — untouched.
  *
- * `@theme` below re-declares the SAME palette as `global.css` so both halves
- * of the site share one visual language. Keep the two in sync by hand until
- * the landing page is migrated too.
+ * `@theme` below is the landing's Mont Rural palette (`--sd-*` in
+ * `global.css`) exposed as Tailwind colours, so both halves of the site read
+ * as one product: butter-cream paper, olive-brown ink, wine-gold accents,
+ * Playfair Display headings over an Archivo grotesk. Keep the two in sync by
+ * hand until the landing is migrated too.
  */
 @import 'tailwindcss';
 
 @theme {
-  --color-cream: #f4f0e8;
-  --color-dark: #0b1a16;
-  --color-forest: #12332a;
-  --color-red: #e8382d;
-  --color-red-dark: #c92a20;
-  --color-mint: #3fe0a0;
-  --color-green: #0f6b4d;
-  --color-ink: #16211d;
-  --color-muted: #4a5a53;
+  /* Paper and ink. `white` is deliberately a warm paper tone, not #fff: every
+     `bg-white` card and field then sits on the cream instead of glaring. */
+  --color-cream: #f8e8c5;
+  --color-white: #fdf6e6;
+  --color-ink: #443e2b;
+  --color-dark: #2e2a1e;
+  --color-muted: #6b6249;
 
-  --font-sans: 'Instrument Sans', system-ui, sans-serif;
-  /* Serif display face for headings on app/content pages — never used on the
-     cinematic landing, which keeps its own brush font. */
-  --font-serif: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  /* Wine-gold accents — the landing's call-to-action colour. */
+  --color-gold: #cfa559;
+  --color-gold-light: #f3d79a;
+  --color-gold-deep: #8a6a2e;
+  --color-tan: #b39a6a;
+
+  /* Forest for calm/positive states, brick red for errors and destructive actions. */
+  --color-forest: #37482f;
+  --color-green: #4d6b2f;
+  --color-mint: #f3d79a;
+  --color-red: #b3382b;
+  --color-red-dark: #8f2c22;
+
+  --font-sans: 'Archivo', 'Instrument Sans', system-ui, sans-serif;
+  --font-serif: 'Playfair Display', 'Fraunces', Georgia, serif;
+}
+
+/* Every app screen's root: paper grain painted once with the background (no
+   fixed layer, no blending), the grotesk body face and the ink colour. */
+@utility app-surface {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+    var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* The landing's liquid-glass pill, reused for the app's floating header. Only
+   one blurred surface per page: every backdrop-filter repaints on scroll. */
+@utility app-glass {
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 18px;
+  background: linear-gradient(90deg, rgb(248 232 197 / 86%) 0%, rgb(248 232 197 / 70%) 100%);
+  box-shadow:
+    0 10px 34px rgb(68 62 43 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 55%);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+
+/* Small-caps label framed by engraved stars, as on the landing's eyebrows. */
+@utility app-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+
+  &::before,
+  &::after {
+    content: '✦ ✦ ✦';
+    font-size: 7px;
+    letter-spacing: 0.2em;
+    color: var(--color-tan);
+  }
+}
+
+/* Nav link whose hairline draws in from the left on hover and stays when active. */
+@utility app-navlink {
+  position: relative;
+  padding: 4px 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+
+  &::after {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 1px;
+    background: currentcolor;
+    transform: scaleX(0);
+    transform-origin: right;
+    content: '';
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover,
+  &[aria-current='page'] {
+    opacity: 1;
+  }
+
+  &:hover::after,
+  &[aria-current='page']::after {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
 }

@@ -41,8 +41,8 @@ export function ReactionBar({ target }: { target: CommentTarget }) {
               onClick={() => onPick(type)}
               aria-pressed={active}
               className={cn(
-                'inline-flex h-9 items-center gap-2 border px-3 text-sm transition-colors disabled:opacity-60',
-                active ? 'border-dark bg-dark text-cream' : 'border-ink/15 bg-white text-ink hover:border-ink/40',
+                'inline-flex h-9 items-center gap-2 rounded-full border px-3.5 text-sm transition-colors disabled:opacity-60',
+                active ? 'border-ink bg-ink text-cream' : 'border-ink/25 text-ink hover:border-ink/60',
               )}
             >
               <Icon className={cn('h-4 w-4', active && type === 'love' && 'fill-current')} aria-hidden />

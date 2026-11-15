@@ -41,9 +41,9 @@ export function UserMenu() {
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex h-10 items-center gap-2.5 pr-1 pl-1 text-cream/80 transition-colors hover:text-cream"
+        className="flex h-10 items-center gap-2.5 pr-1 pl-1 text-ink/80 transition-colors hover:text-ink"
       >
-        <span className="flex h-8 w-8 items-center justify-center bg-mint text-xs font-semibold text-forest">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-light text-xs font-bold text-ink">
           {initials(user.fullName)}
         </span>
         <span className="hidden max-w-36 truncate text-sm lg:inline">{user.fullName}</span>
@@ -53,13 +53,13 @@ export function UserMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-64 border border-ink/10 bg-white py-2 shadow-[0_12px_40px_-12px_rgba(11,26,22,0.35)]"
+          className="absolute right-0 mt-3 w-64 rounded-xl border border-ink/15 bg-white py-2 shadow-[0_12px_40px_-12px_rgba(68,62,43,0.35)]"
         >
           <div className="border-b border-ink/10 px-4 pb-3">
             <p className="truncate text-sm font-medium text-ink">{user.fullName}</p>
             <p className="truncate text-xs text-muted">{user.email}</p>
             {user.role !== 'USER' && (
-              <p className="mt-2 inline-block bg-dark px-2 py-0.5 text-[10px] font-semibold tracking-wider text-cream uppercase">
+              <p className="mt-2 inline-block rounded-full bg-ink px-2 py-0.5 text-[10px] font-bold tracking-wider text-cream uppercase">
                 {user.role}
               </p>
             )}

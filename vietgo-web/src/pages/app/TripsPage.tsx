@@ -53,7 +53,7 @@ export function TripsPage() {
               <li key={trip.id}>
                 <Link
                   to={`/app/trips/${trip.id}`}
-                  className="group flex h-full flex-col border border-ink/10 bg-white p-6 transition-colors hover:border-ink/30"
+                  className="group flex h-full flex-col rounded-lg border border-ink/15 bg-white p-6 transition-colors hover:border-gold-deep/60"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <p className="text-xs font-medium tracking-wider text-muted uppercase">

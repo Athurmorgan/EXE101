@@ -118,10 +118,10 @@ export function TripDetailPage() {
                       aria-selected={current === n}
                       onClick={() => pick(n)}
                       className={cn(
-                        'h-10 border px-4 text-sm font-medium transition-colors',
+                        'h-10 rounded-full border px-4 text-sm font-medium transition-colors',
                         current === n
-                          ? 'border-dark bg-dark text-cream'
-                          : 'border-ink/15 bg-white text-ink hover:border-ink/40',
+                          ? 'border-ink bg-ink text-cream'
+                          : 'border-ink/25 text-ink hover:border-ink/60',
                       )}
                     >
                       Plan {n}
@@ -130,7 +130,7 @@ export function TripDetailPage() {
                 </div>
               )}
 
-              <div className="mt-8 flex flex-col gap-4 border border-ink/10 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-8 flex flex-col gap-4 rounded-lg border border-ink/15 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex flex-wrap items-center gap-3 text-sm">
                   {applied ? <Badge>Your plan</Badge> : <span className="font-medium text-ink">Plan {current}</span>}
                   <span className="text-muted">

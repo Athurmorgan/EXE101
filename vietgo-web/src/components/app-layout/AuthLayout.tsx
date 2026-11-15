@@ -8,23 +8,22 @@ import { Logo } from './Logo';
  */
 export function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="grid min-h-screen bg-cream lg:grid-cols-[1.1fr_1fr]">
+    <div className="app-surface grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
       <aside className="relative hidden overflow-hidden bg-dark lg:block">
         <img
           src="/images/hoian-night.webp"
           alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-75"
+          className="absolute inset-0 h-full w-full object-cover opacity-80"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/30 to-dark/10" />
         <div className="relative flex h-full flex-col justify-between p-12 text-cream">
           <Logo tone="light" />
           <figure className="max-w-md">
-            <blockquote className="font-serif text-3xl leading-snug">
-              The best bowl of phở in Hà Nội has no sign, no menu and no English.
+            <p className="app-eyebrow text-cream/80 [&::before]:text-gold [&::after]:text-gold">Field note</p>
+            <blockquote className="mt-5 font-serif text-4xl leading-[1.1]">
+              The best bowl of phở in Hà Nội has <em>no sign</em>, no menu and no English.
             </blockquote>
-            <figcaption className="mt-4 text-sm text-cream/70">
-              vivivu shows you where it is anyway.
-            </figcaption>
+            <figcaption className="mt-5 text-sm text-cream/70">vivivu shows you where it is anyway.</figcaption>
           </figure>
         </div>
       </aside>

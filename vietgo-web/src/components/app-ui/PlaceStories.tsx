@@ -25,7 +25,7 @@ export function PlaceStories({ placeId, placeName }: { placeId: string; placeNam
       )}
       <Link
         to={writeUrl}
-        className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-ink underline underline-offset-4 hover:text-forest"
+        className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-ink underline underline-offset-4 hover:text-gold-deep"
       >
         <PenLine className="h-4 w-4" aria-hidden /> Write about {placeName}
       </Link>
