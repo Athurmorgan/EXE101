@@ -6,6 +6,8 @@ import { AppException, ErrorCode } from '../../common/errors/app.exception';
 import { AuditService } from '../audit/audit.service';
 import type { AuthUser } from '../../common/decorators';
 import { AiService } from '../ai/ai.service';
+import type { DietaryPreference, TripStyle } from '../ai/dto/ai.dto';
+import type { CreateItineraryDto } from './dto/itinerary.dto';
 
 @Injectable()
 export class ItineraryService {
@@ -15,10 +17,11 @@ export class ItineraryService {
     private readonly aiService: AiService,
   ) {}
 
-  async create(dto: { regionId: string; startDate: string; endDate: string; title?: string; budgetVnd?: number }, user: AuthUser): Promise<Itinerary> {
+  async create(dto: CreateItineraryDto, user: AuthUser): Promise<Itinerary> {
     const startDate = new Date(dto.startDate);
     const endDate = new Date(dto.endDate);
-    const days = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+    const days = AiService.calculateDays(dto.startDate, dto.endDate);
+    const hasStart = dto.startLat != null && dto.startLng != null;
 
     return this.prisma.itinerary.create({
       data: {
@@ -29,6 +32,13 @@ export class ItineraryService {
         days,
         title: dto.title,
         estimatedCost: dto.budgetVnd,
+        travelers: dto.travelers,
+        styles: dto.styles ?? [],
+        dietary: dto.dietary,
+        preferredPlaceIds: dto.preferredPlaceIds ?? [],
+        startLat: hasStart ? dto.startLat : null,
+        startLng: hasStart ? dto.startLng : null,
+        startLabel: hasStart ? dto.startLabel : null,
         status: 'DRAFT',
       },
     });
@@ -38,48 +48,62 @@ export class ItineraryService {
     const itinerary = await this.prisma.itinerary.findUnique({ where: { id: itineraryId } });
     if (!itinerary) throw AppException.notFound('Itinerary');
     if (itinerary.userId !== user.id) throw new AppException(ErrorCode.FORBIDDEN, 403, 'You can only generate options for your own itinerary');
-
-    await this.prisma.itineraryStop.deleteMany({ where: { itineraryId } });
+    if (!itinerary.regionId) throw new AppException(ErrorCode.VALIDATION_FAILED, 422, 'Itinerary has no region');
 
     const aiResult = await this.aiService.generate5Options({
-      regionId: itinerary.regionId!,
+      regionId: itinerary.regionId,
       startDate: itinerary.startDate.toISOString().slice(0, 10),
       endDate: itinerary.endDate.toISOString().slice(0, 10),
       budgetVnd: itinerary.estimatedCost ?? undefined,
+      travelers: itinerary.travelers ?? undefined,
+      styles: itinerary.styles as TripStyle[],
+      dietary: (itinerary.dietary as DietaryPreference | null) ?? undefined,
+      preferredPlaceIds: itinerary.preferredPlaceIds,
+      startLat: itinerary.startLat ?? undefined,
+      startLng: itinerary.startLng ?? undefined,
+      startLabel: itinerary.startLabel ?? undefined,
     });
 
-    for (const option of aiResult.options) {
-      let orderInDay = 0;
-      for (const day of option.days) {
-        for (const stop of day.stops) {
-          await this.prisma.itineraryStop.create({
-            data: {
-              itineraryId,
-              optionNumber: option.optionNumber,
-              dayNumber: day.dayNumber,
-              orderInDay: orderInDay++,
-              placeName: stop.name,
-              placeLat: stop.lat,
-              placeLng: stop.lng,
-              placeAddress: stop.address,
-              stopType: stop.stopType,
-              mealType: stop.mealType ?? null,
-              scheduledTime: stop.scheduledTime,
-              estimatedDuration: stop.estimatedDurationMin,
-              estimatedCost: stop.estimatedCost,
-              travelTimeFromPrevMin: stop.travelTimeFromPrevMin,
-              notes: stop.notes,
-            },
-          });
-        }
-      }
-    }
+    const rows = aiResult.options.flatMap((option) =>
+      option.days.flatMap((day) =>
+        day.stops.map((stop, orderInDay) => ({
+          itineraryId,
+          optionNumber: option.optionNumber,
+          dayNumber: day.dayNumber,
+          orderInDay,
+          placeId: stop.placeId,
+          placeName: stop.name,
+          placeLat: stop.lat,
+          placeLng: stop.lng,
+          placeAddress: stop.address,
+          stopType: stop.stopType,
+          mealType: stop.mealType,
+          scheduledTime: stop.scheduledTime,
+          estimatedDuration: stop.estimatedDurationMin,
+          estimatedCost: stop.estimatedCost,
+          travelTimeFromPrevMin: stop.travelTimeFromPrevMin,
+          notes: stop.notes ?? null,
+        })),
+      ),
+    );
 
-    const totalCost = aiResult.options.reduce((sum, opt) => sum + (opt.estimatedCost ?? 0), 0);
-    await this.prisma.itinerary.update({ where: { id: itineraryId }, data: { estimatedCost: totalCost } });
-    await this.audit.record({ action: AUDIT_ACTIONS.ITINERARY_GENERATE, targetType: 'Itinerary', targetId: itineraryId, actor: { id: user.id, email: user.email } });
+    // Thay toan bo stops cu bang bo moi trong mot transaction, de regenerate
+    // that bai khong de lai lich trinh trong.
+    await this.prisma.$transaction([
+      this.prisma.itineraryStop.deleteMany({ where: { itineraryId } }),
+      this.prisma.itineraryStop.createMany({ data: rows }),
+      this.prisma.itinerary.update({ where: { id: itineraryId }, data: { selectedOption: null, status: 'DRAFT' } }),
+    ]);
 
-    return this.prisma.itinerary.findUnique({ where: { id: itineraryId } }) as unknown as Itinerary;
+    await this.audit.record({
+      action: AUDIT_ACTIONS.ITINERARY_GENERATE,
+      targetType: 'Itinerary',
+      targetId: itineraryId,
+      actor: { id: user.id, email: user.email },
+      after: { source: aiResult.source, provider: aiResult.provider, candidates: aiResult.candidateCount },
+    });
+
+    return this.findOne(itineraryId);
   }
 
   async applyOption(itineraryId: string, dto: { optionNumber: number }, user: AuthUser): Promise<Itinerary> {
@@ -87,11 +111,15 @@ export class ItineraryService {
     if (!itinerary) throw AppException.notFound('Itinerary');
     if (itinerary.userId !== user.id) throw new AppException(ErrorCode.FORBIDDEN, 403, 'You can only apply options for your own itinerary');
 
+    const chosen = itinerary.stops.filter((s) => s.optionNumber === dto.optionNumber);
+    if (chosen.length === 0) throw AppException.notFound('Option');
+    const perPerson = chosen.reduce((sum, s) => sum + (s.estimatedCost ?? 0), 0);
+
     await this.prisma.itineraryStop.deleteMany({ where: { itineraryId, optionNumber: { not: dto.optionNumber } } });
 
     const updated = await this.prisma.itinerary.update({
       where: { id: itineraryId },
-      data: { selectedOption: dto.optionNumber, status: 'APPLIED' },
+      data: { selectedOption: dto.optionNumber, status: 'APPLIED', estimatedCost: perPerson },
     });
     await this.audit.record({ action: AUDIT_ACTIONS.ITINERARY_APPLY, targetType: 'Itinerary', targetId: itineraryId, actor: { id: user.id, email: user.email }, after: { selectedOption: dto.optionNumber } });
 

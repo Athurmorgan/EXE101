@@ -518,6 +518,18 @@ model Itinerary {
   /// So tien uoc tinh (VND), dung cho Stage 4.
   estimatedCost  Int?     @map("estimated_cost")
 
+  // === PLANNER INPUT (luu lai de regenerate cho ra cung dieu kien) ===
+  travelers      Int?
+  /// Phong cach di: "foodie" | "cultural" | ... (xem TRIP_STYLES).
+  styles         String[] @default([])
+  dietary        String?
+  /// Diem xuat phat moi ngay (khach san / vi tri hien tai). Null = trung tam vung.
+  startLat       Float?   @map("start_lat")
+  startLng       Float?   @map("start_lng")
+  startLabel     String?  @map("start_label")
+  /// Place bat buoc phai co trong lich (chon tu shortlist).
+  preferredPlaceIds String[] @default([]) @map("preferred_place_ids") @db.Uuid
+
   stops ItineraryStop[]
 
   createdAt DateTime @default(now()) @map("created_at")

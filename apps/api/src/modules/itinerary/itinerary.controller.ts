@@ -1,6 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { CurrentUser, type AuthUser } from '../../common/decorators';
 import { ItineraryService } from './itinerary.service';
+// Import gia tri (khong `import type`): ValidationPipe can class luc runtime.
+import { ApplyOptionDto, CreateItineraryDto } from './dto/itinerary.dto';
 
 @Controller('itineraries')
 export class ItineraryController {
@@ -17,7 +19,7 @@ export class ItineraryController {
   }
 
   @Post()
-  create(@Body() body: { regionId: string; startDate: string; endDate: string; title?: string; budgetVnd?: number }, @CurrentUser() user: AuthUser) {
+  create(@Body() body: CreateItineraryDto, @CurrentUser() user: AuthUser) {
     return this.itineraryService.create(body, user);
   }
 
@@ -27,7 +29,7 @@ export class ItineraryController {
   }
 
   @Post(':id/apply')
-  apply(@Param('id', ParseUUIDPipe) id: string, @Body() body: { optionNumber: number }, @CurrentUser() user: AuthUser) {
+  apply(@Param('id', ParseUUIDPipe) id: string, @Body() body: ApplyOptionDto, @CurrentUser() user: AuthUser) {
     return this.itineraryService.applyOption(id, body, user);
   }
 
