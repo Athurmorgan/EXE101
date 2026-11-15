@@ -4,11 +4,12 @@ import { cn } from '@/lib/cn';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { ModerationPanel } from './admin/ModerationPanel';
+import { PlacesPanel } from './admin/PlacesPanel';
 import { UsersPanel } from './admin/UsersPanel';
 
-type Tab = 'moderation' | 'users';
+type Tab = 'moderation' | 'places' | 'users';
 
-/** Staff console: managers moderate their regions; admins also manage users. */
+/** Staff console: managers moderate their regions; admins also manage places and users. */
 export function AdminPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === 'ADMIN';
@@ -16,7 +17,12 @@ export function AdminPage() {
 
   const tabs: Array<{ id: Tab; label: string }> = [
     { id: 'moderation', label: 'Moderation' },
-    ...(isAdmin ? [{ id: 'users' as const, label: 'Users' }] : []),
+    ...(isAdmin
+      ? [
+          { id: 'places' as const, label: 'Places' },
+          { id: 'users' as const, label: 'Users' },
+        ]
+      : []),
   ];
 
   return (
@@ -26,7 +32,7 @@ export function AdminPage() {
         title="Staff console"
         lead={
           isAdmin
-            ? 'Review what travellers submit and manage accounts.'
+            ? 'Review what travellers submit, keep places accurate and manage accounts.'
             : 'Review stories and places submitted in your regions.'
         }
       />
@@ -50,7 +56,7 @@ export function AdminPage() {
             ))}
           </div>
         )}
-        {tab === 'users' && isAdmin ? <UsersPanel /> : <ModerationPanel />}
+        {!isAdmin || tab === 'moderation' ? <ModerationPanel /> : tab === 'places' ? <PlacesPanel /> : <UsersPanel />}
       </Container>
     </>
   );

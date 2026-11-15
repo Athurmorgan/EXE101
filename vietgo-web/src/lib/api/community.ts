@@ -24,6 +24,11 @@ export function createPost(payload: NewPostPayload): Promise<Post> {
   return api.post<Post>('/community/posts', payload);
 }
 
+/** Every post by the signed-in user, whatever its moderation status. */
+export function listMyPosts(): Promise<Post[]> {
+  return api.get<Post[]>('/community/posts/me');
+}
+
 export function deletePost(id: string): Promise<{ id: string }> {
   return api.delete<{ id: string }>(`/community/posts/${id}`);
 }

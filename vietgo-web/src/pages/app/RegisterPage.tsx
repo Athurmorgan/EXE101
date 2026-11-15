@@ -7,6 +7,7 @@ import { AuthLayout } from '@/components/app-layout/AuthLayout';
 import { Input } from '@/components/app-ui/Input';
 import { Button } from '@/components/app-ui/Button';
 import { Alert } from '@/components/app-ui/Alert';
+import { GoogleButton, OrDivider } from '@/components/app-ui/GoogleButton';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -74,7 +75,12 @@ export function RegisterPage() {
       <h1 className="font-serif text-3xl tracking-tight text-ink">Create your account</h1>
       <p className="mt-2 text-sm text-muted">Save places, build itineraries, share what you find.</p>
 
-      <form onSubmit={onRegister} className="mt-8 flex flex-col gap-5" noValidate>
+      <div className="mt-8 flex flex-col gap-5">
+        <GoogleButton />
+        <OrDivider />
+      </div>
+
+      <form onSubmit={onRegister} className="mt-5 flex flex-col gap-5" noValidate>
         <Input
           label="Full name"
           autoComplete="name"

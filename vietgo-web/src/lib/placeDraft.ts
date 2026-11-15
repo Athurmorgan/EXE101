@@ -1,4 +1,5 @@
 import type { NewPlacePayload } from './api/places';
+import type { Place } from '@/types/api';
 import type { FieldErrors } from './validation';
 
 /** The "suggest a place" form as the user types it (all strings), plus its rules. */
@@ -58,5 +59,23 @@ export function toPlacePayload(draft: PlaceDraft): NewPlacePayload {
       priceRange: draft.priceRange || undefined,
       avgMealPrice: draft.avgMealPrice ? Math.round(Number(draft.avgMealPrice)) : undefined,
     }),
+  };
+}
+
+/** An existing place as an editable draft — the inverse of `toPlacePayload`. */
+export function toPlaceDraft(place: Place): PlaceDraft {
+  return {
+    name: place.name,
+    category: place.category,
+    address: place.address ?? '',
+    regionId: place.regionId ?? '',
+    lat: String(place.lat),
+    lng: String(place.lng),
+    description: place.description ?? '',
+    cuisineType: place.cuisineType ?? '',
+    mealType: place.mealType ?? '',
+    priceRange: place.priceRange ?? '',
+    avgMealPrice: place.avgMealPrice != null ? String(place.avgMealPrice) : '',
+    isHiddenPlace: place.isHiddenPlace,
   };
 }

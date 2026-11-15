@@ -43,6 +43,16 @@ export function submitPlace(payload: NewPlacePayload): Promise<Place> {
   return api.post<Place>('/places', payload);
 }
 
+/** Staff only in the UI — the BE route itself has no role guard yet. */
+export function updatePlace(id: string, payload: Partial<NewPlacePayload>): Promise<Place> {
+  return api.put<Place>(`/places/${id}`, payload);
+}
+
+/** Hard delete. The BE refuses it while the place sits in anyone's shortlist (FK restrict). */
+export function deletePlace(id: string): Promise<Place> {
+  return api.delete<Place>(`/places/${id}`);
+}
+
 /** Orders places by nearest-neighbour and stamps times on them — a one-day plan. */
 export function buildSchedule(placeIds: string[], startHour = 9): Promise<DaySchedule> {
   return api.post<DaySchedule>('/places/schedule/build', { placeIds, startHour });

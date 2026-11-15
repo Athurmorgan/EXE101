@@ -22,6 +22,8 @@ import { NewTripPage } from '@/pages/app/NewTripPage';
 import { TripDetailPage } from '@/pages/app/TripDetailPage';
 import { AccountPage } from '@/pages/app/AccountPage';
 import { AdminPage } from '@/pages/app/AdminPage';
+import { EditPlacePage } from '@/pages/app/EditPlacePage';
+import { GoogleCallbackPage } from '@/pages/app/GoogleCallbackPage';
 import { AuthProvider } from '@/hooks/useAuth';
 import { CustomCursor } from '@/components/layout/CustomCursor';
 import { SmoothScroll } from '@/providers/SmoothScroll';
@@ -80,6 +82,8 @@ export default function App() {
           <Route path="/app" element={<Navigate to="/app/discover" replace />} />
           <Route path="/app/login" element={<LoginPage />} />
           <Route path="/app/register" element={<RegisterPage />} />
+          {/* The BE's Google callback lands on `FRONTEND_URL/auth/callback`. */}
+          <Route path="/auth/callback" element={<GoogleCallbackPage />} />
           <Route element={<AppShell />}>
             <Route path="/app/discover" element={<DiscoverPage />} />
             {/* `new` must match before the `:id` pattern. */}
@@ -98,6 +102,14 @@ export default function App() {
               element={
                 <RequireAuth roles={['ADMIN', 'MANAGER']}>
                   <AdminPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/app/admin/places/:id/edit"
+              element={
+                <RequireAuth roles={['ADMIN']}>
+                  <EditPlacePage />
                 </RequireAuth>
               }
             />

@@ -1,6 +1,6 @@
 import { useAsync } from './useAsync';
 import { useMutation } from './useMutation';
-import { createPost, deletePost, getPost, listPosts, type NewPostPayload } from '@/lib/api/community';
+import { createPost, deletePost, getPost, listMyPosts, listPosts, type NewPostPayload } from '@/lib/api/community';
 
 type PostQuery = NonNullable<Parameters<typeof listPosts>[0]>;
 
@@ -31,4 +31,14 @@ export function usePost(id: string) {
 /** New posts are `PENDING` until a moderator approves them. */
 export function useCreatePost() {
   return useMutation((payload: NewPostPayload) => createPost(payload), 'Could not publish your story.');
+}
+
+/** The signed-in user's own posts — pending and rejected ones included. */
+export function useMyPosts() {
+  const { data, loading, error, setData } = useAsync(listMyPosts, []);
+  const remove = useMutation(async (id: string) => {
+    await deletePost(id);
+    setData((posts) => posts?.filter((p) => p.id !== id));
+  }, 'Could not delete this story.');
+  return { posts: data ?? [], loaded: Boolean(data), loading, error, remove };
 }

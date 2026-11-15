@@ -14,6 +14,8 @@ interface AuthContextValue {
   /** ADMIN or MANAGER — can open the admin area. */
   isStaff: boolean;
   login: (email: string, password: string) => Promise<void>;
+  /** Adopt an access token handed over by the Google OAuth redirect. */
+  signInWithToken: (token: string) => Promise<void>;
   logout: () => void;
   /** Drop local session state without calling the BE (it already revoked it). */
   clearSession: () => void;
@@ -83,6 +85,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const signInWithToken = useCallback(async (token: string): Promise<void> => {
+    setStatus('loading');
+    setError(null);
+    setAccessToken(token);
+    storeToken(token);
+    try {
+      setUser(await apiMe());
+      setStatus('authenticated');
+    } catch (err) {
+      storeToken(null);
+      setAccessToken(null);
+      setStatus('guest');
+      setError(err instanceof Error ? err.message : 'Google sign-in failed.');
+      throw err;
+    }
+  }, []);
+
   const clearSession = useCallback(() => {
     storeToken(null);
     setAccessToken(null);
@@ -98,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isStaff = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
   return (
-    <AuthContext.Provider value={{ user, status, error, isStaff, login, logout, clearSession, setUser }}>
+    <AuthContext.Provider value={{ user, status, error, isStaff, login, signInWithToken, logout, clearSession, setUser }}>
       {children}
     </AuthContext.Provider>
   );

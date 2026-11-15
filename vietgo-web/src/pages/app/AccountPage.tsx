@@ -1,16 +1,21 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Loader2, PenLine } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useChangePassword, useSignOutEverywhere, useUpdateProfile } from '@/hooks/useAccount';
-import { formatDate, initials } from '@/lib/format';
+import { useMyPosts } from '@/hooks/usePosts';
+import { formatDate, initials, timeAgo } from '@/lib/format';
+import { cn } from '@/lib/cn';
+import type { ModerationStatus } from '@/types/api';
 import { hasErrors, validatePasswordChange, validateProfile, type FieldErrors } from '@/lib/validation';
 import { Container } from '@/components/app-layout/Container';
 import { PageHeader } from '@/components/app-ui/PageHeader';
 import { Input } from '@/components/app-ui/Input';
 import { Alert } from '@/components/app-ui/Alert';
 import { Badge } from '@/components/app-ui/Badge';
-import { Button } from '@/components/app-ui/Button';
+import { Button, buttonClasses } from '@/components/app-ui/Button';
+import { EmptyState } from '@/components/app-ui/EmptyState';
+import { Skeleton } from '@/components/app-ui/Skeleton';
 
 function Panel({ title, lead, children }: { title: string; lead: string; children: ReactNode }) {
   return (
@@ -47,6 +52,7 @@ export function AccountPage() {
         </div>
 
         <ProfileForm />
+        <MyStoriesPanel />
         <PasswordForm />
         <SessionsPanel />
       </Container>
@@ -196,6 +202,81 @@ function SessionsPanel() {
         {signOut.busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         Sign out on all devices
       </Button>
+    </Panel>
+  );
+}
+
+const STORY_STATUS: Record<ModerationStatus, { label: string; tone: string }> = {
+  PENDING: { label: 'In review', tone: 'bg-ink/5 text-muted' },
+  APPROVED: { label: 'Published', tone: 'bg-mint text-forest' },
+  REJECTED: { label: 'Not approved', tone: 'bg-red/10 text-red-dark' },
+};
+
+function MyStoriesPanel() {
+  const { posts, loaded, loading, error, remove } = useMyPosts();
+
+  return (
+    <Panel title="Your stories" lead="Everything you've shared, including what's still in review.">
+      {error && <Alert className="mb-5">{error}</Alert>}
+      {remove.error && <Alert className="mb-5">{remove.error}</Alert>}
+
+      {loading && !loaded ? (
+        <div className="space-y-3">
+          <Skeleton className="h-16" />
+          <Skeleton className="h-16" />
+        </div>
+      ) : posts.length === 0 && !error ? (
+        <EmptyState
+          icon={PenLine}
+          title="No stories yet"
+          action={
+            <Link to="/app/community/new" className={buttonClasses('dark', 'sm')}>
+              Write your first
+            </Link>
+          }
+        >
+          Tips, routes, a meal worth the detour — other travellers will thank you.
+        </EmptyState>
+      ) : (
+        <ul className="divide-y divide-ink/10 border-y border-ink/10">
+          {posts.map((post) => {
+            const status = STORY_STATUS[post.status] ?? STORY_STATUS.PENDING;
+            return (
+              <li key={post.id} className="flex items-start gap-4 py-4">
+                <div className="min-w-0 flex-1">
+                  <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                    <span className={cn('px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase', status.tone)}>
+                      {status.label}
+                    </span>
+                    <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
+                  </p>
+                  {post.status === 'APPROVED' ? (
+                    <Link
+                      to={`/app/community/${post.id}`}
+                      className="mt-1.5 block truncate font-medium text-ink hover:underline hover:underline-offset-4"
+                    >
+                      {post.title}
+                    </Link>
+                  ) : (
+                    <p className="mt-1.5 truncate font-medium text-ink">{post.title}</p>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-red hover:bg-red/5"
+                  disabled={remove.busy}
+                  onClick={() => {
+                    if (window.confirm(`Delete “${post.title}”? This can't be undone.`)) void remove.run(post.id);
+                  }}
+                >
+                  Delete
+                </Button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </Panel>
   );
 }

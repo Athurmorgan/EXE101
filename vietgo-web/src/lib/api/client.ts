@@ -6,7 +6,7 @@
  * Dev requests go through the Vite proxy configured in `vite.config.ts`
  * (`/api` -> `http://localhost:3000`), so the browser never hits CORS.
  */
-const API_BASE = '/api/v1';
+export const API_BASE = '/api/v1';
 
 let accessToken: string | null = null;
 let tokenListener: ((token: string | null) => void) | null = null;

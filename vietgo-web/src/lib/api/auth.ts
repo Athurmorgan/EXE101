@@ -1,4 +1,4 @@
-import { api, setAccessToken } from './client';
+import { API_BASE, api, setAccessToken } from './client';
 import type { AuthSession, User } from '@/types/api';
 
 export async function login(email: string, password: string): Promise<AuthSession> {
@@ -64,3 +64,10 @@ export function updateProfile(payload: ProfilePayload): Promise<User> {
 export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
   return api.post('/auth/change-password', { currentPassword, newPassword });
 }
+
+/**
+ * Full-page redirect target for "Continue with Google". The BE bounces to
+ * Google, then back to `FRONTEND_URL/auth/callback?access_token=…` (its
+ * default), which `GoogleCallbackPage` picks up.
+ */
+export const GOOGLE_SIGN_IN_URL = `${API_BASE}/auth/google`;

@@ -6,6 +6,7 @@ import { AuthLayout } from '@/components/app-layout/AuthLayout';
 import { Input } from '@/components/app-ui/Input';
 import { Button } from '@/components/app-ui/Button';
 import { Alert } from '@/components/app-ui/Alert';
+import { GoogleButton, OrDivider } from '@/components/app-ui/GoogleButton';
 
 // Seeded USER account on the BE (see PROJECT_STATUS.md §10) — dev only.
 const DEMO_ACCOUNT = { email: 'user@vivivu.vn', password: 'Vivivu@2026' };
@@ -39,8 +40,18 @@ export function LoginPage() {
       <h1 className="font-serif text-3xl tracking-tight text-ink">Welcome back</h1>
       <p className="mt-2 text-sm text-muted">Sign in to save places and plan your trip.</p>
 
-      <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-5" noValidate>
-        {notice && !error && <Alert tone="success">{notice}</Alert>}
+      {notice && !error && (
+        <Alert tone="success" className="mt-8">
+          {notice}
+        </Alert>
+      )}
+
+      <div className="mt-8 flex flex-col gap-5">
+        <GoogleButton returnTo={from} />
+        <OrDivider />
+      </div>
+
+      <form onSubmit={onSubmit} className="mt-5 flex flex-col gap-5" noValidate>
         <Input
           label="Email"
           type="email"
