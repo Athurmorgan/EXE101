@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
 import { CurrentUser, Public } from '../../common/decorators';
 import { CommunityService } from './community.service';
+import { CreatePostDto } from './dto/post.dto';
 
 @Controller()
 export class CommunityController {
@@ -22,6 +23,13 @@ export class CommunityController {
     });
   }
 
+  // Phai khai bao TRUOC `community/posts/:id`: Express khop route theo thu tu
+  // dang ky, neu dat sau thi "me" bi coi la `:id` va ParseUUIDPipe tra 400.
+  @Get('community/posts/me')
+  myPosts(@CurrentUser() user: { id: string; email: string; role: string }) {
+    return this.communityService.findMyPosts(user.id);
+  }
+
   @Public()
   @Get('community/posts/:id')
   detail(@Param('id', ParseUUIDPipe) id: string) {
@@ -29,17 +37,12 @@ export class CommunityController {
   }
 
   @Post('community/posts')
-  create(@Body() body: Record<string, unknown>, @CurrentUser() user: { id: string; email: string; role: string }) {
-    return this.communityService.create(body as Parameters<typeof this.communityService.create>[0], user as Parameters<typeof this.communityService.create>[1]);
+  create(@Body() body: CreatePostDto, @CurrentUser() user: { id: string; email: string; role: string }) {
+    return this.communityService.create(body, user as Parameters<typeof this.communityService.create>[1]);
   }
 
   @Delete('community/posts/:id')
   remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: { id: string; email: string; role: string }) {
     return this.communityService.remove(id, user as Parameters<typeof this.communityService.remove>[1]);
-  }
-
-  @Get('community/posts/me')
-  myPosts(@CurrentUser() user: { id: string; email: string; role: string }) {
-    return this.communityService.findMyPosts(user.id);
   }
 }

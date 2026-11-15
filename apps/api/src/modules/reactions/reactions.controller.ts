@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { CurrentUser, Public, type AuthUser } from '../../common/decorators';
 import { ReactionsService } from './reactions.service';
-import type { CreateReactionDto } from './dto/reaction.dto';
+// Import gia tri (khong `import type`): ValidationPipe can class luc runtime.
+import { CreateReactionDto } from './dto/reaction.dto';
 import type { Reaction } from '@prisma/client';
 
 @Controller()
@@ -17,7 +18,7 @@ export class ReactionsController {
   @Post('places/:placeId/reactions')
   reactPlace(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Body() body: Omit<CreateReactionDto, 'placeId'>,
+    @Body() body: CreateReactionDto,
     @CurrentUser() user: AuthUser,
   ): Promise<Reaction> {
     return this.reactionsService.upsert({ ...body, placeId }, user);
@@ -26,7 +27,7 @@ export class ReactionsController {
   @Post('posts/:postId/reactions')
   reactPost(
     @Param('postId', ParseUUIDPipe) postId: string,
-    @Body() body: Omit<CreateReactionDto, 'postId'>,
+    @Body() body: CreateReactionDto,
     @CurrentUser() user: AuthUser,
   ): Promise<Reaction> {
     return this.reactionsService.upsert({ ...body, postId }, user);

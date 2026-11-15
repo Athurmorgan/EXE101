@@ -4,6 +4,7 @@ import { cacheKey } from '../../common/utils/cache-key';
 import { RedisService } from '../../common/services/redis.service';
 import type { Prisma, Place } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
+import { AppException } from '../../common/errors/app.exception';
 
 interface SchedulePlace {
   id: string;
@@ -65,8 +66,9 @@ export class PlacesService {
       where: { id },
       include: { region: true, photos: { orderBy: { uploadedAt: 'desc' } }, openingHours: { orderBy: { dayOfWeek: 'asc' } } },
     });
-    if (!place) throw new Error(`Place ${id} not found`);
-    if (!includeAllStatuses && place.status !== 'APPROVED') throw new Error(`Place ${id} not available`);
+    // AppException → 404; `Error` thuong bi filter bien thanh 500.
+    if (!place) throw AppException.notFound('Place');
+    if (!includeAllStatuses && place.status !== 'APPROVED') throw AppException.notFound('Place');
     return place;
   }
 
@@ -74,13 +76,22 @@ export class PlacesService {
     name: string; description: string; lat: number; lng: number; address: string;
     category: string; cuisineType: string; mealType: string; priceRange: string; avgMealPrice: number; regionId: string; isHiddenPlace: boolean;
   }>): Promise<Place> {
+    const exists = await this.prisma.place.findUnique({ where: { id }, select: { id: true } });
+    if (!exists) throw AppException.notFound('Place');
     const updated = await this.prisma.place.update({ where: { id }, data });
     await this.redis.invalidate('places:search:*');
     return updated;
   }
 
   async remove(id: string): Promise<Place> {
-    const removed = await this.prisma.place.delete({ where: { id } });
+    const exists = await this.prisma.place.findUnique({ where: { id }, select: { id: true } });
+    if (!exists) throw AppException.notFound('Place');
+    // Shortlist -> Place khong co onDelete Cascade (FK restrict) nen phai xoa
+    // cac muc shortlist truoc, neu khong DB tu choi va tra 500.
+    const [, removed] = await this.prisma.$transaction([
+      this.prisma.shortlist.deleteMany({ where: { placeId: id } }),
+      this.prisma.place.delete({ where: { id } }),
+    ]);
     await this.redis.invalidate('places:search:*');
     return removed;
   }

@@ -1,5 +1,6 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
-import { Public } from '../../common/decorators';
+import { Public, Roles } from '../../common/decorators';
+import { CreatePlaceDto, UpdatePlaceDto } from './dto/place.dto';
 import { PlacesService } from './places.service';
 import type { Place } from '@prisma/client';
 
@@ -35,15 +36,19 @@ export class PlacesController {
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
-    return this.placesService.create(body as Parameters<typeof this.placesService.create>[0]);
+  create(@Body() body: CreatePlaceDto) {
+    return this.placesService.create(body);
   }
 
+  // Sua/xoa dia diem dang hien thi cho moi nguoi → chi ADMIN. User thuong chi
+  // de xuat (POST) va cho kiem duyet.
+  @Roles('ADMIN')
   @Put(':id')
-  update(@Param('id', ParseUUIDPipe) id: string, @Body() body: Record<string, unknown>) {
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() body: UpdatePlaceDto) {
     return this.placesService.update(id, body);
   }
 
+  @Roles('ADMIN')
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: string): Promise<Place> {
     return this.placesService.remove(id);

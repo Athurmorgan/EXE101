@@ -1,6 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AiService } from './ai.service';
-import type { GenerateItineraryDto } from './dto/ai.dto';
+// Import gia tri (khong `import type`): ValidationPipe can class luc runtime.
+import { GenerateItineraryDto } from './dto/ai.dto';
 
 @Controller('ai/itinerary')
 export class AiController {

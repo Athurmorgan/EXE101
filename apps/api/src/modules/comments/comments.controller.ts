@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
 import { CurrentUser, Public, type AuthUser } from '../../common/decorators';
 import { CommentsService } from './comments.service';
-import type { CreateCommentDto } from './dto/comment.dto';
+// Import gia tri (khong `import type`): ValidationPipe can class luc runtime.
+import { CreateCommentDto } from './dto/comment.dto';
 import type { Comment } from '@prisma/client';
 
 @Controller()
@@ -23,7 +24,7 @@ export class CommentsController {
   @Post('places/:placeId/comments')
   createOnPlace(
     @Param('placeId', ParseUUIDPipe) placeId: string,
-    @Body() body: Omit<CreateCommentDto, 'placeId'>,
+    @Body() body: CreateCommentDto,
     @CurrentUser() user: AuthUser,
   ): Promise<Comment> {
     return this.commentsService.create({ ...body, placeId }, user);
@@ -32,7 +33,7 @@ export class CommentsController {
   @Post('posts/:postId/comments')
   createOnPost(
     @Param('postId', ParseUUIDPipe) postId: string,
-    @Body() body: Omit<CreateCommentDto, 'postId'>,
+    @Body() body: CreateCommentDto,
     @CurrentUser() user: AuthUser,
   ): Promise<Comment> {
     return this.commentsService.create({ ...body, postId }, user);
