@@ -25,11 +25,21 @@ export interface SeedPlace {
   aiScore?: number;
   hours?: string;
   closedDays?: number[];
+  /** Tu khoa anh demo (loremflickr); bo trong = suy ra tu category + vung. */
+  photo?: string;
 }
 
 const HN = 'ha-noi';
 const HCM = 'tp-ho-chi-minh';
 const DN = 'da-nang';
+const HUE = 'thua-thien-hue';
+const DALAT = 'lam-dong';
+const NT = 'khanh-hoa';
+const PQ = 'kien-giang';
+const SAPA = 'lao-cai';
+const CT = 'can-tho';
+const HL = 'quang-ninh';
+const HP = 'hai-phong';
 
 export const SEED_PLACES: SeedPlace[] = [
   // ===========================================================================
@@ -452,5 +462,443 @@ export const SEED_PLACES: SeedPlace[] = [
     category: 'cafe', cuisineType: 'international', mealType: 'coffee',
     priceRange: 'moderate', avgMealPrice: 90000, isHiddenPlace: true, googleRating: 4.6, googleReviews: 3300, aiScore: 8.1,
     regionSlug: DN, hours: '07:00-22:00',
+  },
+  // ===========================================================================
+  // THUA THIEN HUE
+  // ===========================================================================
+  {
+    name: 'Imperial City of Hue',
+    description: 'Dai Noi - hoang thanh nha Nguyen, di bo 2-3 tieng; vao cong Ngo Mon.',
+    lat: 16.4698, lng: 107.5774, address: 'Phu Hau, Hue',
+    category: 'attraction', googleRating: 4.5, googleReviews: 40000, aiScore: 9.1,
+    regionSlug: HUE, hours: '07:00-17:30',
+  },
+  {
+    name: 'Thien Mu Pagoda',
+    description: 'Chua Thien Mu ben song Huong, thap Phuoc Duyen 7 tang - di thuyen rong toi.',
+    lat: 16.4530, lng: 107.5447, address: 'Kim Long, Hue',
+    category: 'attraction', googleRating: 4.5, googleReviews: 18000, aiScore: 8.5,
+    regionSlug: HUE, hours: '06:00-18:00',
+  },
+  {
+    name: 'Tomb of Tu Duc',
+    description: 'Lang Tu Duc - ho sen, nha thuy ta, reu xanh; dep nhat sau mua.',
+    lat: 16.4310, lng: 107.5510, address: 'Thuy Xuan, Hue',
+    category: 'attraction', googleRating: 4.5, googleReviews: 12000, aiScore: 8.4,
+    regionSlug: HUE, hours: '07:00-17:30',
+  },
+  {
+    name: 'Bun Bo Hue Ba Tuyet',
+    description: 'Bun bo Hue chuan vi, gio heo va cha cua, mo som dong khach dia phuong.',
+    lat: 16.4625, lng: 107.5880, address: '47 Nguyen Cong Tru, Hue',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 40000, isHiddenPlace: true, googleRating: 4.4, googleReviews: 1800, aiScore: 8.6,
+    regionSlug: HUE, hours: '06:00-11:00',
+  },
+  {
+    name: 'Quan Hanh Banh Khoai',
+    description: 'Banh khoai, banh beo, nem lui - bo mon an vat cung dinh binh dan hoa.',
+    lat: 16.4660, lng: 107.5930, address: '11 Pho Duc Chinh, Hue',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 70000, googleRating: 4.3, googleReviews: 3200, aiScore: 8.1,
+    regionSlug: HUE, hours: '09:00-21:00',
+  },
+  {
+    name: 'Les Jardins de La Carambole',
+    description: 'Nha hang Phap-Viet trong biet thu thoi thuoc dia, gan Dai Noi - bua toi dat ban.',
+    lat: 16.4710, lng: 107.5720, address: '32 Dang Tran Con, Hue',
+    category: 'restaurant', cuisineType: 'international', mealType: 'dinner',
+    priceRange: 'high-end', avgMealPrice: 450000, googleRating: 4.5, googleReviews: 2100, aiScore: 8.3,
+    regionSlug: HUE, hours: '07:00-22:00',
+  },
+  {
+    name: 'Ca Phe Muoi Dang Thai Than',
+    description: 'Ca phe muoi - dac san Hue, vi man nhe lam dam ca phe. Quan goc tren Dang Thai Than.',
+    lat: 16.4720, lng: 107.5855, address: '10 Nguyen Luong Bang, Hue',
+    category: 'cafe', cuisineType: 'vietnamese', mealType: 'coffee',
+    priceRange: 'budget', avgMealPrice: 25000, isHiddenPlace: true, googleRating: 4.5, googleReviews: 1400, aiScore: 8.4,
+    regionSlug: HUE, hours: '06:30-22:00',
+  },
+  {
+    name: 'Dong Ba Market',
+    description: 'Cho Dong Ba - me xung, tom chua, non la; khu an vat tang tret.',
+    lat: 16.4720, lng: 107.5880, address: 'Tran Hung Dao, Hue',
+    category: 'shopping', googleRating: 4.1, googleReviews: 9000, aiScore: 7.3,
+    regionSlug: HUE, hours: '06:00-18:30',
+  },
+
+  // ===========================================================================
+  // LAM DONG (DA LAT)
+  // ===========================================================================
+  {
+    name: 'Xuan Huong Lake',
+    description: 'Ho giua trung tam Da Lat - di bo hoac dap vit, sang som co suong.',
+    lat: 11.9404, lng: 108.4430, address: 'Tran Quoc Toan, Da Lat',
+    category: 'attraction', googleRating: 4.5, googleReviews: 15000, aiScore: 8.3,
+    regionSlug: DALAT, hours: '05:00-23:00',
+  },
+  {
+    name: 'Da Lat Night Market',
+    description: 'Cho dem Da Lat - banh trang nuong, sua dau nanh nong, ao am.',
+    lat: 11.9430, lng: 108.4375, address: 'Nguyen Thi Minh Khai, Da Lat',
+    category: 'shopping', googleRating: 4.1, googleReviews: 11000, aiScore: 7.6,
+    regionSlug: DALAT, hours: '17:00-23:00',
+  },
+  {
+    name: 'Crazy House',
+    description: 'Biet thu Hang Nga - kien truc ky di, cau thang hep, hop chup anh.',
+    lat: 11.9350, lng: 108.4310, address: '3 Huynh Thuc Khang, Da Lat',
+    category: 'attraction', googleRating: 4.2, googleReviews: 20000, aiScore: 7.5,
+    regionSlug: DALAT, hours: '08:30-19:00',
+  },
+  {
+    name: 'Datanla Waterfall',
+    description: 'Thac Datanla - may truot nui xuyen rung thong, cach trung tam 6 km.',
+    lat: 11.9020, lng: 108.4490, address: 'Deo Prenn, Da Lat',
+    category: 'attraction', googleRating: 4.4, googleReviews: 14000, aiScore: 8.0,
+    regionSlug: DALAT, hours: '07:00-17:00',
+  },
+  {
+    name: 'Banh Can Nha Chung',
+    description: 'Banh can trung cut, cha ca, an voi xiu mai - bua sang lanh Da Lat.',
+    lat: 11.9420, lng: 108.4335, address: '1 Nha Chung, Da Lat',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 35000, isHiddenPlace: true, googleRating: 4.3, googleReviews: 2200, aiScore: 8.2,
+    regionSlug: DALAT, hours: '06:30-11:30',
+  },
+  {
+    name: 'Lau Ga La E Tao Ngo',
+    description: 'Lau ga la e - mon lau "quoc dan" Da Lat, cay nhe, an toi troi lanh.',
+    lat: 11.9460, lng: 108.4400, address: '5 Ba Thang Tu, Da Lat',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'dinner',
+    priceRange: 'moderate', avgMealPrice: 150000, googleRating: 4.3, googleReviews: 5400, aiScore: 8.3,
+    regionSlug: DALAT, hours: '10:00-22:00',
+  },
+  {
+    name: 'Tiem Banh Mi Xiu Mai Hoang Dieu',
+    description: 'Banh mi cham xiu mai nuoc - an trua nhanh, quan via he.',
+    lat: 11.9395, lng: 108.4350, address: '26 Hoang Dieu, Da Lat',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 30000, isHiddenPlace: true, googleRating: 4.4, googleReviews: 1600, aiScore: 7.9,
+    regionSlug: DALAT, hours: '06:00-20:00',
+  },
+  {
+    name: 'An Cafe',
+    description: 'Cafe san vuon tren doi, nhin xuong thung lung - ca phe arabica Cau Dat.',
+    lat: 11.9470, lng: 108.4480, address: '63 Ba Thang Hai, Da Lat',
+    category: 'cafe', cuisineType: 'vietnamese', mealType: 'coffee',
+    priceRange: 'budget', avgMealPrice: 45000, googleRating: 4.5, googleReviews: 6800, aiScore: 8.2,
+    regionSlug: DALAT, hours: '07:00-22:00',
+  },
+
+  // ===========================================================================
+  // KHANH HOA (NHA TRANG)
+  // ===========================================================================
+  {
+    name: 'Nha Trang Beach',
+    description: 'Bai bien trung tam 6 km, tam sang som; cong vien bo bien co cay bong mat.',
+    lat: 12.2388, lng: 109.1967, address: 'Tran Phu, Nha Trang',
+    category: 'attraction', googleRating: 4.5, googleReviews: 30000, aiScore: 8.6,
+    regionSlug: NT, hours: '05:00-22:00',
+  },
+  {
+    name: 'Po Nagar Cham Towers',
+    description: 'Thap Ba Ponagar - den Cham the ky 8 tren doi, nhin ra cua song Cai.',
+    lat: 12.2653, lng: 109.1955, address: '2 Thang 4, Nha Trang',
+    category: 'attraction', googleRating: 4.4, googleReviews: 16000, aiScore: 8.2,
+    regionSlug: NT, hours: '06:00-17:30',
+  },
+  {
+    name: 'Long Son Pagoda',
+    description: 'Chua Long Son - tuong Phat trang tren doi, 150 bac thang, view thanh pho.',
+    lat: 12.2510, lng: 109.1810, address: '22 Thang 10, Nha Trang',
+    category: 'attraction', googleRating: 4.4, googleReviews: 11000, aiScore: 7.8,
+    regionSlug: NT, hours: '07:30-17:00',
+  },
+  {
+    name: 'Bun Ca Nguyen Loan',
+    description: 'Bun ca sua, cha ca Nha Trang - bua sang cua dan bien.',
+    lat: 12.2440, lng: 109.1890, address: '123 Ngo Gia Tu, Nha Trang',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 40000, isHiddenPlace: true, googleRating: 4.4, googleReviews: 2800, aiScore: 8.3,
+    regionSlug: NT, hours: '06:00-21:00',
+  },
+  {
+    name: 'Nem Nuong Dang Van Quyen',
+    description: 'Nem nuong Ninh Hoa cuon rau, cham tuong - quan lau doi nhat.',
+    lat: 12.2470, lng: 109.1910, address: '16A Lan Ong, Nha Trang',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 60000, googleRating: 4.3, googleReviews: 4100, aiScore: 8.0,
+    regionSlug: NT, hours: '07:30-21:30',
+  },
+  {
+    name: 'Lang Chai Seafood',
+    description: 'Hai san tuoi tren be, khong gian lon, hop nhom - dat gia truoc khi can.',
+    lat: 12.2300, lng: 109.1960, address: '1 Pham Van Dong, Nha Trang',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'dinner',
+    priceRange: 'moderate', avgMealPrice: 300000, googleRating: 4.2, googleReviews: 7200, aiScore: 7.8,
+    regionSlug: NT, hours: '10:00-22:30',
+  },
+  {
+    name: 'Rainforest Cafe Nha Trang',
+    description: 'Cafe nhieu tang cay xanh giua pho, mat ve chieu, co khu tre em.',
+    lat: 12.2395, lng: 109.1895, address: '146 Vo Tru, Nha Trang',
+    category: 'cafe', cuisineType: 'international', mealType: 'coffee',
+    priceRange: 'budget', avgMealPrice: 50000, googleRating: 4.4, googleReviews: 5100, aiScore: 7.7,
+    regionSlug: NT, hours: '07:00-22:30',
+  },
+
+  // ===========================================================================
+  // KIEN GIANG (PHU QUOC)
+  // ===========================================================================
+  {
+    name: 'Sao Beach',
+    description: 'Bai Sao - cat trang min, nuoc xanh, phia dong nam dao; dep nhat buoi sang.',
+    lat: 10.0530, lng: 104.0370, address: 'An Thoi, Phu Quoc',
+    category: 'attraction', googleRating: 4.3, googleReviews: 22000, aiScore: 8.5,
+    regionSlug: PQ, hours: '06:00-18:00',
+  },
+  {
+    name: 'Dinh Cau Night Market',
+    description: 'Cho dem Phu Quoc - hai san nuong, kem cuon, qua luu niem ngoc trai.',
+    lat: 10.2170, lng: 103.9590, address: 'Bach Dang, Duong Dong, Phu Quoc',
+    category: 'shopping', googleRating: 4.1, googleReviews: 14000, aiScore: 7.4,
+    regionSlug: PQ, hours: '17:00-23:00',
+  },
+  {
+    name: 'Phu Quoc Fish Sauce Factory Khai Hoan',
+    description: 'Nha thung nuoc mam truyen thong, xem thung go 10 tan va nem thu.',
+    lat: 10.2100, lng: 103.9650, address: '11 Hung Vuong, Duong Dong, Phu Quoc',
+    category: 'attraction', isHiddenPlace: true, googleRating: 4.2, googleReviews: 3100, aiScore: 7.3,
+    regionSlug: PQ, hours: '07:30-17:00',
+  },
+  {
+    name: 'Bun Quay Kien Xay',
+    description: 'Bun quay - bun tuoi ep tai cho, cha ca, tu pha nuoc cham. Dac san dao.',
+    lat: 10.2150, lng: 103.9610, address: '28 Bach Dang, Duong Dong, Phu Quoc',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 50000, isHiddenPlace: true, googleRating: 4.3, googleReviews: 3600, aiScore: 8.2,
+    regionSlug: PQ, hours: '06:00-22:00',
+  },
+  {
+    name: 'Ra Khoi Seafood',
+    description: 'Hai san gia hop ly gan cho dem, ghe nuong, goi ca trich.',
+    lat: 10.2190, lng: 103.9620, address: '131 Ba Thang Muoi, Duong Dong, Phu Quoc',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'dinner',
+    priceRange: 'moderate', avgMealPrice: 250000, googleRating: 4.2, googleReviews: 4800, aiScore: 7.9,
+    regionSlug: PQ, hours: '10:00-22:00',
+  },
+  {
+    name: 'Phu Quoc Coffee Roastery',
+    description: 'Cafe san thuong nhin ra bien Duong Dong, hoang hon dep.',
+    lat: 10.2160, lng: 103.9570, address: 'Tran Hung Dao, Duong Dong, Phu Quoc',
+    category: 'cafe', cuisineType: 'international', mealType: 'coffee',
+    priceRange: 'moderate', avgMealPrice: 70000, googleRating: 4.4, googleReviews: 1200, aiScore: 7.6,
+    regionSlug: PQ, hours: '07:00-22:00',
+  },
+
+  // ===========================================================================
+  // LAO CAI (SA PA)
+  // ===========================================================================
+  {
+    name: 'Cat Cat Village',
+    description: 'Ban Cat Cat cua nguoi H Mong, thac nuoc va ruong bac thang, di bo 2 tieng.',
+    lat: 22.3240, lng: 103.8330, address: 'San Sa Ho, Sa Pa',
+    category: 'attraction', googleRating: 4.3, googleReviews: 17000, aiScore: 8.2,
+    regionSlug: SAPA, hours: '06:00-18:00',
+  },
+  {
+    name: 'Fansipan Cable Car',
+    description: 'Cap treo len noc nha Dong Duong 3.143 m, 20 phut; mang ao am.',
+    lat: 22.3030, lng: 103.7750, address: 'Nguyen Chi Thanh, Sa Pa',
+    category: 'attraction', googleRating: 4.6, googleReviews: 24000, aiScore: 8.9,
+    regionSlug: SAPA, hours: '07:30-17:30',
+  },
+  {
+    name: 'Sa Pa Stone Church',
+    description: 'Nha tho da giua thi tran, quang truong la noi hop cho phien toi T7.',
+    lat: 22.3370, lng: 103.8430, address: 'Quang truong Sa Pa',
+    category: 'attraction', googleRating: 4.4, googleReviews: 9000, aiScore: 7.6,
+    regionSlug: SAPA, hours: '06:00-21:00',
+  },
+  {
+    name: 'A Phu Restaurant',
+    description: 'Lau ca hoi, thit lon ban nuong, rau cai meo - bua toi am giua suong.',
+    lat: 22.3360, lng: 103.8420, address: '15 Fansipan, Sa Pa',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'dinner',
+    priceRange: 'moderate', avgMealPrice: 200000, googleRating: 4.3, googleReviews: 3900, aiScore: 8.0,
+    regionSlug: SAPA, hours: '09:00-22:00',
+  },
+  {
+    name: 'Pho Chua Sa Pa',
+    description: 'Banh cuon, pho chua - bua sang nong trong con hem gan cho.',
+    lat: 22.3380, lng: 103.8440, address: 'Cau May, Sa Pa',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 40000, isHiddenPlace: true, googleRating: 4.2, googleReviews: 900, aiScore: 7.5,
+    regionSlug: SAPA, hours: '06:00-11:00',
+  },
+  {
+    name: 'Le Gecko Cafe',
+    description: 'Cafe Phap lau doi tren Cau May, banh ngot va view thung lung Muong Hoa.',
+    lat: 22.3355, lng: 103.8445, address: '4 Ham Rong, Sa Pa',
+    category: 'cafe', cuisineType: 'international', mealType: 'coffee',
+    priceRange: 'moderate', avgMealPrice: 70000, googleRating: 4.3, googleReviews: 2500, aiScore: 7.6,
+    regionSlug: SAPA, hours: '07:00-22:00',
+  },
+
+  // ===========================================================================
+  // CAN THO
+  // ===========================================================================
+  {
+    name: 'Cai Rang Floating Market',
+    description: 'Cho noi lon nhat mien Tay, di ghe tu ben Ninh Kieu luc 5h30; an hu tieu tren ghe.',
+    lat: 10.0050, lng: 105.7520, address: 'Cai Rang, Can Tho',
+    category: 'attraction', googleRating: 4.3, googleReviews: 19000, aiScore: 8.7,
+    regionSlug: CT, hours: '05:00-09:00',
+  },
+  {
+    name: 'Ninh Kieu Wharf',
+    description: 'Ben Ninh Kieu - di dao bo song Hau buoi toi, cau di bo den mau.',
+    lat: 10.0330, lng: 105.7880, address: 'Hai Ba Trung, Ninh Kieu, Can Tho',
+    category: 'attraction', googleRating: 4.4, googleReviews: 15000, aiScore: 8.0,
+    regionSlug: CT, hours: '05:00-23:00',
+  },
+  {
+    name: 'Binh Thuy Ancient House',
+    description: 'Nha co Binh Thuy 1870, phim Nguoi tinh quay o day; vuon lan.',
+    lat: 10.0620, lng: 105.7640, address: '144 Bui Huu Nghia, Binh Thuy, Can Tho',
+    category: 'attraction', googleRating: 4.3, googleReviews: 4200, aiScore: 7.7,
+    regionSlug: CT, hours: '08:00-17:00',
+  },
+  {
+    name: 'Banh Xeo Bay Toi',
+    description: 'Banh xeo mien Tay co lon, nhan tom thit gia, cuon la cach la cai.',
+    lat: 10.0260, lng: 105.7700, address: '45 Hoang Quoc Viet, Ninh Kieu, Can Tho',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 60000, isHiddenPlace: true, googleRating: 4.3, googleReviews: 2600, aiScore: 8.1,
+    regionSlug: CT, hours: '10:00-21:00',
+  },
+  {
+    name: 'Lau Mam Da Ly',
+    description: 'Lau mam dam vi mien Tay, rau dong hon 20 loai - bua toi cho nhom.',
+    lat: 10.0290, lng: 105.7760, address: '89 Ba Thang Hai, Ninh Kieu, Can Tho',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'dinner',
+    priceRange: 'moderate', avgMealPrice: 180000, googleRating: 4.2, googleReviews: 3300, aiScore: 7.9,
+    regionSlug: CT, hours: '10:00-22:00',
+  },
+  {
+    name: 'Nem Nuong Thanh Van',
+    description: 'Nem nuong Cai Rang cuon banh hoi, sang hoac trua deu hop.',
+    lat: 10.0320, lng: 105.7830, address: '17 Dai lo Hoa Binh, Ninh Kieu, Can Tho',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 45000, googleRating: 4.2, googleReviews: 2100, aiScore: 7.6,
+    regionSlug: CT, hours: '07:00-21:00',
+  },
+  {
+    name: 'Cafe Sai Gon - Can Tho',
+    description: 'Cafe ven song nhin ra cau Can Tho, hoang hon mien Tay.',
+    lat: 10.0340, lng: 105.7900, address: '55 Hai Ba Trung, Ninh Kieu, Can Tho',
+    category: 'cafe', cuisineType: 'vietnamese', mealType: 'coffee',
+    priceRange: 'budget', avgMealPrice: 40000, googleRating: 4.3, googleReviews: 1500, aiScore: 7.4,
+    regionSlug: CT, hours: '06:30-22:30',
+  },
+
+  // ===========================================================================
+  // QUANG NINH (HA LONG)
+  // ===========================================================================
+  {
+    name: 'Ha Long Bay Day Cruise Pier',
+    description: 'Cang tau Tuan Chau - diem len tau tham vinh; tour 6 tieng qua hang Sung Sot.',
+    lat: 20.9220, lng: 106.9850, address: 'Tuan Chau, Ha Long',
+    category: 'attraction', googleRating: 4.6, googleReviews: 35000, aiScore: 9.3,
+    regionSlug: HL, hours: '07:00-17:00',
+  },
+  {
+    name: 'Bai Tho Mountain',
+    description: 'Nui Bai Tho - leo 30 phut, view toan vinh tu tren cao luc hoang hon.',
+    lat: 20.9530, lng: 107.0810, address: 'Hong Gai, Ha Long',
+    category: 'attraction', isHiddenPlace: true, googleRating: 4.5, googleReviews: 3800, aiScore: 8.2,
+    regionSlug: HL, hours: '06:00-18:00',
+  },
+  {
+    name: 'Ha Long Market',
+    description: 'Cho Ha Long 1 - hai san kho, cha muc, sa sung.',
+    lat: 20.9520, lng: 107.0770, address: 'Le Thanh Tong, Ha Long',
+    category: 'shopping', googleRating: 4.0, googleReviews: 5200, aiScore: 7.0,
+    regionSlug: HL, hours: '06:00-18:00',
+  },
+  {
+    name: 'Cha Muc Ha Long Thoan',
+    description: 'Cha muc gia tay, xoi trang - mon sang bieu tuong Ha Long.',
+    lat: 20.9515, lng: 107.0780, address: 'Cho Ha Long 1, Ha Long',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 50000, isHiddenPlace: true, googleRating: 4.4, googleReviews: 1700, aiScore: 8.3,
+    regionSlug: HL, hours: '06:00-20:00',
+  },
+  {
+    name: 'Hai San Cua Vang',
+    description: 'Nha hang hai san lon ven bien Bai Chay, tu bon hai san.',
+    lat: 20.9570, lng: 107.0360, address: 'Ha Long Marina, Bai Chay',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'dinner',
+    priceRange: 'moderate', avgMealPrice: 300000, googleRating: 4.3, googleReviews: 6400, aiScore: 8.0,
+    regionSlug: HL, hours: '10:00-22:00',
+  },
+  {
+    name: 'Bun Be Be Ha Long',
+    description: 'Bun be be (tom tit) - dac san vinh, nuoc dung ngot thanh.',
+    lat: 20.9540, lng: 107.0790, address: 'Tran Hung Dao, Ha Long',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 55000, googleRating: 4.2, googleReviews: 1300, aiScore: 7.7,
+    regionSlug: HL, hours: '06:30-21:00',
+  },
+
+  // ===========================================================================
+  // HAI PHONG
+  // ===========================================================================
+  {
+    name: 'Banh Da Cua Ba Cu',
+    description: 'Banh da cua do - mon sang dinh danh Hai Phong, cha la lot va tom.',
+    lat: 20.8570, lng: 106.6830, address: '179 Cau Dat, Ngo Quyen, Hai Phong',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
+    priceRange: 'budget', avgMealPrice: 40000, isHiddenPlace: true, googleRating: 4.4, googleReviews: 2900, aiScore: 8.5,
+    regionSlug: HP, hours: '06:00-21:00',
+  },
+  {
+    name: 'Banh Mi Que Ba Gia',
+    description: 'Banh mi que cham pate cay - an vat chieu, mua chuc chiec.',
+    lat: 20.8580, lng: 106.6790, address: '57 Le Loi, Ngo Quyen, Hai Phong',
+    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'all-day',
+    priceRange: 'budget', avgMealPrice: 15000, isHiddenPlace: true, googleRating: 4.3, googleReviews: 1800, aiScore: 7.8,
+    regionSlug: HP, hours: '07:00-21:00',
+  },
+  {
+    name: 'Nem Cua Be Co Lan',
+    description: 'Nem cua be vuong Hai Phong, bun va rau song - bua trua dam da.',
+    lat: 20.8540, lng: 106.6850, address: '33 Tran Phu, Ngo Quyen, Hai Phong',
+    category: 'restaurant', cuisineType: 'seafood', mealType: 'lunch',
+    priceRange: 'budget', avgMealPrice: 60000, googleRating: 4.3, googleReviews: 1400, aiScore: 7.9,
+    regionSlug: HP, hours: '09:00-21:00',
+  },
+  {
+    name: 'Hai Phong Opera House',
+    description: 'Nha hat lon Hai Phong - kien truc Phap 1904, quang truong phuong do.',
+    lat: 20.8580, lng: 106.6820, address: 'Quang truong Nha hat, Hong Bang, Hai Phong',
+    category: 'attraction', googleRating: 4.5, googleReviews: 5600, aiScore: 7.9,
+    regionSlug: HP, hours: '06:00-22:00',
+  },
+  {
+    name: 'Do Son Beach',
+    description: 'Bai bien Do Son - cach trung tam 20 km, dai hoi choi trau thang 8 am lich.',
+    lat: 20.7080, lng: 106.7830, address: 'Do Son, Hai Phong',
+    category: 'attraction', googleRating: 4.1, googleReviews: 8200, aiScore: 7.2,
+    regionSlug: HP, hours: '05:00-20:00',
+  },
+  {
+    name: 'Ca Phe Cot Den',
+    description: 'Cafe san vuon cu ky giua pho, ca phe phin dam va ban ghe go.',
+    lat: 20.8560, lng: 106.6800, address: '8 Minh Khai, Hong Bang, Hai Phong',
+    category: 'cafe', cuisineType: 'vietnamese', mealType: 'coffee',
+    priceRange: 'budget', avgMealPrice: 30000, isHiddenPlace: true, googleRating: 4.4, googleReviews: 900, aiScore: 7.6,
+    regionSlug: HP, hours: '06:30-22:00',
   },
 ];

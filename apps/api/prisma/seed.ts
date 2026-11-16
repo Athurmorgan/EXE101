@@ -9,6 +9,7 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { SEED_PLACES } from './seed-places';
+import { SEED_COMMUNITY_USERS, SEED_POSTS, SEED_SHORTLIST } from './seed-community';
 
 const prisma = new PrismaClient();
 
@@ -103,6 +104,12 @@ const SEED_REGIONS = [
   { name: 'Vinh Phuc', slug: 'vinh-phuc', isCity: false, lat: 21.3609, lng: 105.5972 },
   { name: 'Yen Bai', slug: 'yen-bai', isCity: false, lat: 21.7051, lng: 104.8617 },
 ];
+
+/** Anh demo on dinh theo seed (picsum.photos, anh ngau nhien nhung co dinh theo ten). Thay bang anh that sau. */
+function demoPhotoUrl(keywords: string, seed: string): string {
+  const slug = `${keywords}-${seed}`.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return `https://picsum.photos/seed/${slug}/960/720`;
+}
 
 async function main(): Promise<void> {
   // Hash mot lan roi dung lai cho moi tai khoan - argon2 rat cham.
@@ -219,9 +226,116 @@ async function main(): Promise<void> {
         });
       }
     }
+    // Anh demo: 1 anh/dia diem, on dinh theo ten (lock) de reload khong doi anh.
+    const photoUrl = demoPhotoUrl(place.photo ?? `${place.category},${place.regionSlug.replace(/-/g, '')},vietnam`, place.name);
+    const hasPhoto = await prisma.placePhoto.findFirst({ where: { placeId: row.id, url: photoUrl }, select: { id: true } });
+    if (!hasPhoto) {
+      await prisma.placePhoto.create({
+        data: { placeId: row.id, url: photoUrl, caption: place.name, isVerified: true, uploadedByName: 'Vivivu' },
+      });
+    }
     placeCount++;
   }
   console.log(`Seed ${placeCount} sample places`);
+
+  // -------------------------------------------------------------------------
+  // Seed Community users + posts + comments + reactions
+  // -------------------------------------------------------------------------
+  for (const u of SEED_COMMUNITY_USERS) {
+    await prisma.user.upsert({
+      where: { email: u.email },
+      create: {
+        email: u.email, fullName: u.fullName, passwordHash, role: 'USER', locale: 'vi', status: 'ACTIVE',
+        authProvider: 'LOCAL', emailVerifiedAt: new Date(),
+      },
+      update: { fullName: u.fullName },
+    });
+  }
+  const userByEmail = new Map<string, { id: string; fullName: string }>();
+  for (const u of await prisma.user.findMany({ select: { id: true, email: true, fullName: true } })) {
+    userByEmail.set(u.email, { id: u.id, fullName: u.fullName });
+  }
+  const placeByName = new Map<string, { id: string; regionId: string | null }>();
+  for (const pl of await prisma.place.findMany({ select: { id: true, name: true, regionId: true } })) {
+    placeByName.set(pl.name, { id: pl.id, regionId: pl.regionId });
+  }
+
+  let postCount = 0;
+  for (const post of SEED_POSTS) {
+    const author = userByEmail.get(post.authorEmail);
+    if (!author) continue;
+    const place = post.placeName ? placeByName.get(post.placeName) : undefined;
+    const region = await prisma.region.findUnique({ where: { slug: post.regionSlug }, select: { id: true } });
+    const createdAt = new Date(Date.now() - post.daysAgo * 86_400_000);
+
+    let row = await prisma.post.findFirst({ where: { title: post.title, authorId: author.id }, select: { id: true } });
+    if (!row) {
+      row = await prisma.post.create({
+        data: {
+          title: post.title, content: post.content, authorId: author.id,
+          placeId: place?.id, regionId: region?.id ?? place?.regionId ?? null,
+          status: 'APPROVED', createdAt,
+          media: post.photo
+            ? { create: [{ type: 'image', url: demoPhotoUrl(post.photo, post.title), status: 'APPROVED', uploadedByName: author.fullName, uploadedAt: createdAt }] }
+            : undefined,
+        },
+        select: { id: true },
+      });
+    }
+    for (const [i, c] of (post.comments ?? []).entries()) {
+      const ca = userByEmail.get(c.authorEmail);
+      if (!ca) continue;
+      const exists = await prisma.comment.findFirst({ where: { postId: row.id, authorId: ca.id, content: c.content }, select: { id: true } });
+      if (!exists) {
+        await prisma.comment.create({
+          data: { content: c.content, authorId: ca.id, authorName: ca.fullName, postId: row.id, createdAt: new Date(createdAt.getTime() + (i + 1) * 3_600_000) },
+        });
+      }
+    }
+    for (const r of post.reactions ?? []) {
+      const ru = userByEmail.get(r.authorEmail);
+      if (!ru) continue;
+      await prisma.reaction.upsert({
+        where: { userId_postId: { userId: ru.id, postId: row.id } },
+        create: { type: r.type, userId: ru.id, userName: ru.fullName, postId: row.id },
+        update: { type: r.type },
+      });
+    }
+    postCount++;
+  }
+  console.log(`Seed ${postCount} community posts`);
+
+  // Reaction len dia diem: vai luot "love"/"helpful" de trang place khong trong.
+  const reactors = SEED_COMMUNITY_USERS.map((u) => userByEmail.get(u.email)).filter((u): u is { id: string; fullName: string } => Boolean(u));
+  let placeReactionCount = 0;
+  for (const [i, pl] of SEED_PLACES.entries()) {
+    const target = placeByName.get(pl.name);
+    if (!target) continue;
+    const n = ((pl.aiScore ?? 7) >= 8.5 ? 3 : (pl.aiScore ?? 7) >= 8 ? 2 : 1);
+    for (let k = 0; k < n && k < reactors.length; k++) {
+      const ru = reactors[(i + k) % reactors.length]!;
+      const type = pl.isHiddenPlace ? 'love' : k === 0 ? 'helpful' : 'like';
+      await prisma.reaction.upsert({
+        where: { userId_placeId: { userId: ru.id, placeId: target.id } },
+        create: { type, userId: ru.id, userName: ru.fullName, placeId: target.id },
+        update: {},
+      });
+      placeReactionCount++;
+    }
+  }
+  console.log(`Seed ${placeReactionCount} place reactions`);
+
+  // Shortlist mau cho user@vivivu.vn
+  for (const [i, item] of SEED_SHORTLIST.entries()) {
+    const u = userByEmail.get(item.userEmail);
+    const target = placeByName.get(item.placeName);
+    if (!u || !target) continue;
+    await prisma.shortlist.upsert({
+      where: { userId_placeId: { userId: u.id, placeId: target.id } },
+      create: { userId: u.id, placeId: target.id, notes: item.notes, order: i },
+      update: { notes: item.notes },
+    });
+  }
 
   // -------------------------------------------------------------------------
   // Seed Manager Regions (gan manager Ha Noi)

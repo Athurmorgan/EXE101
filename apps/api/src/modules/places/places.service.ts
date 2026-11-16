@@ -143,7 +143,11 @@ export class PlacesService {
       async () => {
         const [total, rows] = await Promise.all([
           this.prisma.place.count({ where }),
-          this.prisma.place.findMany({ where, orderBy, skip: (page - 1) * limit, take: limit }),
+          this.prisma.place.findMany({
+            where, orderBy, skip: (page - 1) * limit, take: limit,
+            // Card can hien thi anh dai dien + ten vung ma khong can goi them.
+            include: { region: true, photos: { orderBy: { uploadedAt: 'desc' }, take: 1 } },
+          }),
         ]);
         return { data: rows, total, page, limit };
       },
