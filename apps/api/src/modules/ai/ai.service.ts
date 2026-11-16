@@ -356,7 +356,7 @@ const THEMES: Theme[] = [
   {
     title: 'Hidden corners',
     description: 'Local favourites that are not on the usual maps, picked by people who live here.',
-    weight: (p) => (p.isHiddenPlace ? 3 : 0) + p.saves * 0.2,
+    weight: (p) => (p.isHiddenPlace ? 6 : 0) + p.saves * 0.2,
   },
   {
     title: 'Slow mornings',
@@ -400,16 +400,17 @@ export function heuristicSelection(
       if (preferred.has(p.id)) s += 100;
       return s;
     };
-    // Xoay vong theo index de 5 phuong an khong giong het nhau khi pool nho.
-    const ranked = rotate([...candidates].sort((a, b) => score(b) - score(a)), index);
+    const ranked = [...candidates].sort((a, b) => score(b) - score(a));
     const slow = theme.title === 'Slow mornings';
-    const picker = new Picker(ranked);
+    // Moi phuong an bat dau o vi tri khac nhau trong tung nhom (bua sang, cafe...)
+    // de 5 phuong an khong trung nhau du diem nen cua dia diem giong het.
+    const picker = new Picker(ranked, index);
     const dayMap = new Map<number, string[]>();
 
     for (let d = 1; d <= days; d++) {
       const ids: string[] = [];
       const take = (pred: (p: CandidatePlace) => boolean, n: number): number => {
-        const got = picker.take(pred, n);
+        const got = picker.take(pred, n, preferred);
         ids.push(...got);
         return got.length;
       };
@@ -433,32 +434,32 @@ export function heuristicSelection(
   });
 }
 
-/** Lay dia diem chua dung; pool het thi cho phep dung lai (nhieu ngay, it dia diem) thay vi de ngay trong. */
+/**
+ * Lay dia diem chua dung trong nhom thoa `pred`, bat dau tu vi tri `offset`
+ * (xoay vong) de cac phuong an khac nhau. Preferred (diem rat cao) luon duoc
+ * uu tien truoc. Pool het thi cho phep dung lai thay vi de ngay trong.
+ */
 class Picker {
   private readonly used = new Set<string>();
-  constructor(private readonly ranked: CandidatePlace[]) {}
+  constructor(
+    private readonly ranked: CandidatePlace[],
+    private readonly offset = 0,
+  ) {}
 
-  take(pred: (p: CandidatePlace) => boolean, n: number): string[] {
-    const out: string[] = [];
-    for (const p of this.ranked) {
-      if (out.length >= n) break;
-      if (!this.used.has(p.id) && pred(p)) {
-        this.used.add(p.id);
-        out.push(p.id);
-      }
-    }
-    if (out.length === 0) {
+  take(pred: (p: CandidatePlace) => boolean, n: number, pinned?: Set<string>): string[] {
+    const pool = this.ranked.filter((p) => !this.used.has(p.id) && pred(p));
+    if (pool.length === 0) {
       const any = this.ranked.find(pred);
-      if (any) out.push(any.id);
+      return any ? [any.id] : [];
     }
+    const first = pool.filter((p) => pinned?.has(p.id));
+    const rest = pool.filter((p) => !pinned?.has(p.id));
+    const k = rest.length ? this.offset % rest.length : 0;
+    const ordered = [...first, ...rest.slice(k), ...rest.slice(0, k)];
+    const out = ordered.slice(0, n).map((p) => p.id);
+    for (const id of out) this.used.add(id);
     return out;
   }
-}
-
-function rotate<T>(arr: T[], by: number): T[] {
-  if (arr.length === 0) return arr;
-  const k = (by * 2) % arr.length;
-  return [...arr.slice(k), ...arr.slice(0, k)];
 }
 
 // =============================================================================
