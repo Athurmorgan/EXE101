@@ -34,5 +34,12 @@
     "ai:dev": "python -m uvicorn app.main:app --reload --port 8000 --app-dir apps/ai-service",
     "ai:lint": "python -m ruff check apps/ai-service",
     "sync:api": "node scripts/sync-api-types.mjs"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true,
+    "argon2@0.41.1": true,
+    "esbuild@0.28.2": true
   }
 }
