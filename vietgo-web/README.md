@@ -1,97 +1,105 @@
-# VietGo Web
+# vivivu — Web (VietGo)
 
-Landing page for VietGo, built with React 19, TypeScript and Vite. Motion is handled by
-[Lenis](https://lenis.darkroom.engineering) (smooth scrolling) and [GSAP](https://gsap.com)
-ScrollTrigger (parallax, pinning, scrubbed text).
+Frontend của vivivu: nền tảng du lịch Việt Nam cho khách nước ngoài tự túc. Gồm **landing page**
+(`/`) và **ứng dụng** (`/app/*`): khám phá địa điểm local chưa có trên Google Maps, lên lịch trình bằng AI,
+cộng đồng đăng bài, và trang quản trị.
 
-## Getting started
+Backend ở repo riêng: `EXE101-be` (nhánh `be`, NestJS). Repo này làm việc trên nhánh `fe`.
+
+---
+
+## Stack
+
+React 19 · TypeScript · Vite 8 · Tailwind v4 (design tokens: cream/white/ink/muted/gold/forest/red) ·
+React Router · Leaflet 1.9 trên tile OpenStreetMap (không cần API key) · lucide-react ·
+GSAP + Lenis (chỉ cho landing) · ESLint + Prettier.
+
+## Chạy local
 
 ```bash
 npm install
-npm run dev        # start the dev server
+npm run dev        # http://localhost:5173
 ```
 
-| Script              | What it does                      |
-| ------------------- | --------------------------------- |
-| `npm run dev`       | Start the Vite dev server         |
-| `npm run build`     | Type-check, then build to `dist/` |
-| `npm run preview`   | Preview the production build      |
-| `npm run typecheck` | Run the TypeScript compiler only  |
-| `npm run lint`      | Lint with ESLint                  |
-| `npm run format`    | Format all files with Prettier    |
+Dev server proxy `/api` → `http://localhost:3000` (xem `vite.config.ts`), nên cần backend chạy trước
+(`npm run dev` ở repo `EXE101-be`). Không cần file `.env`. Khi API không trả về được, Discover/Place
+rơi về dữ liệu mock trong `src/data/mockPlaces.ts`.
 
-## Project structure
+| Script              | Làm gì                              |
+| ------------------- | ----------------------------------- |
+| `npm run dev`       | Vite dev server                     |
+| `npm run build`     | Typecheck rồi build ra `dist/`      |
+| `npm run preview`   | Xem bản build                       |
+| `npm run typecheck` | `tsc --noEmit`                      |
+| `npm run lint`      | ESLint                              |
+| `npm run format`    | Prettier toàn repo                  |
+
+Tài khoản seed (từ backend): `admin@vivivu.vn` · `manager@vivivu.vn` · `user@vivivu.vn`, mật khẩu
+`Vivivu@2026`.
+
+---
+
+## Routes
+
+| Route | Trang | Guard |
+|---|---|---|
+| `/` | Landing page editorial | |
+| `/app/login`, `/app/register`, `/auth/callback` | Đăng nhập email hoặc Google | |
+| `/app/discover` | Danh sách + bản đồ địa điểm, lọc vùng/loại/local pick, tìm kiếm | |
+| `/app/places/:id` | Chi tiết địa điểm, bản đồ, giờ mở cửa, comment, reaction, lưu shortlist | |
+| `/app/places/new` | Gợi ý địa điểm mới (form đầy đủ, nút "I'm there right now" lưu check-in) | login |
+| `/app/admin/places/:id/edit` | Sửa địa điểm | admin |
+| `/app/community` | Feed bài cộng đồng đã duyệt | |
+| `/app/community/new` | Viết bài, **kèm vị trí hiện tại** (xem bên dưới) | login |
+| `/app/community/:id` | Chi tiết bài | |
+| `/app/trips`, `/app/trips/new`, `/app/trips/:id` | Lịch trình: form planner (vùng, ngày, styles, dietary, số người, điểm xuất phát, must-include) → AI/heuristic xếp lịch → bản đồ theo ngày | login |
+| `/app/shortlist` | Danh sách đã lưu, kéo sắp xếp | login |
+| `/app/account` | Hồ sơ, đổi mật khẩu, bài của tôi | login |
+| `/app/admin` | Moderation (posts/places), Users, Places | admin/manager |
+
+## Cấu trúc
 
 ```
-public/images/      Optimized WebP photos + CREDITS.md (sources and licenses)
 src/
-├── components/     Shared building blocks, no page-specific content
-│   ├── ui/         Small primitives: Button, Icon, Image, Eyebrow, Lead, ScrollCarousel, ...
-│   ├── layout/     Page structure: Header, Footer, Logo, Section, Container, StackedSection, ...
-│   └── motion/     Animation wrappers: Reveal, TextReveal, ScrubText, ParallaxLayer, CurtainReveal, ...
-├── sections/       Landing-page sections, one folder each (component + styles + data)
-├── pages/          Pages: which sections appear, in what order (HomePage)
-├── data/           Content shared by several sections, e.g. the image catalogue
-├── hooks/          Reusable hooks (useInView, useDragScroll, ...)
-├── lib/            Third-party setup, e.g. GSAP plugins and shared media queries
-├── providers/      App-wide providers, e.g. smooth scrolling
-├── styles/         Global CSS: design tokens and base styles
-├── utils/          Small pure helpers
-├── App.tsx         Site shell: header, page area, footer
-└── main.tsx        Entry point
+├── sections/, components/{ui,layout,motion,brand}   Landing page (GSAP/Lenis, CSS Modules)
+├── pages/app/              Các trang /app/*  (admin/ chứa 3 panel quản trị)
+├── components/app-layout/  AppShell, nav, header của app
+├── components/app-ui/      Primitives của app (Button, Chip, Select, Alert, PlaceMap, LocationPicker, PlaceForm, ...)
+├── hooks/                  usePlaces, usePlace, usePosts, useTrips, useAuth, useModeration, useSubmitPlace (useGeolocation), useMutation, ...
+├── lib/api/                client.ts (fetch + refresh token) và 1 file / resource: places, community, itineraries, auth, admin, regions, shortlist
+├── lib/                    validation, placeDraft, itinerary, geo (haversine + formatDistance), format, cn
+├── types/api.ts            Kiểu dữ liệu trả về từ BE
+├── data/                   images.ts (landing), mockPlaces.ts (fallback khi API lỗi)
+└── styles/                 global.css (landing), app.css (tokens Tailwind + .vv-pin/.vv-dot cho map)
 ```
 
-Dependencies only point downwards: `pages` -> `sections` -> `components` -> `hooks` / `lib` /
-`utils`. Components never import from `sections`, and sections never import from each other.
+Quy ước: alias `@/`; chạy `npm run lint && npm run typecheck` trước khi commit; landing dùng CSS
+Modules + biến trong `global.css`, app dùng Tailwind tokens trong `app.css`; chỉ animate `transform`/`opacity`.
 
-## Adding new functionality
+---
 
-- **A new page:** create `src/pages/XPage.tsx` that composes sections, then render it inside
-  `<main>` in `App.tsx` (put a router around it when there is more than one page).
-- **A new landing section:** create `src/sections/X/` with `X.tsx`, `X.module.css` and a plain
-  `.ts` data file for its copy, then add it to `HomePage.tsx`.
-- **A feature with its own logic** (forms, login, API calls, dashboards): create
-  `src/features/<name>/` holding its `components/`, `hooks/`, `api/` and `types.ts`, and let
-  pages or sections import from it. Keep anything reusable across features in `components/`,
-  `hooks/` or `utils/` instead.
-- **A reusable piece:** small and generic -> `components/ui`; page structure ->
-  `components/layout`; animation -> `components/motion`.
+## Đã làm (tính đến 2026-11-16)
 
-## Conventions
+- **Landing page** editorial: hero slideshow ink-bleed, stacked sections, curtain reveal, reduced-motion fallback.
+- **Auth**: đăng ký/đăng nhập email, Google sign-in, refresh token tự động, guard theo role.
+- **Discover + Place detail**: tìm kiếm, lọc, nhãn LOCAL PICK cho chỗ chưa có trên Google, bản đồ Leaflet, comment/reaction/shortlist.
+- **Planner**: form input đầy đủ → gọi BE sinh lịch → xem theo ngày trên bản đồ (pin đánh số, nối đường theo ngày), áp dụng/xóa lịch.
+- **Cộng đồng**: feed, chi tiết, viết bài (ảnh bằng link), bài của tôi.
+- **Đăng bài kèm vị trí hiện tại (demo "chỗ chưa có trên Google")**: trong Write a story bật *Pin the place* →
+  *Use my location* lấy GPS (lưu làm check-in, hiện độ chính xác) → kéo ghim/chạm bản đồ để chỉnh →
+  app hỏi *Is it one of these?* với các chỗ trong 300 m (có khoảng cách) → chọn chỗ có sẵn hoặc
+  *It's not listed — add it* (tên, loại, địa chỉ, checkbox Local secret) → gửi: tạo place PENDING rồi tạo bài.
+- **Admin**: Moderation hiện bản đồ ghim + chấm GPS lúc đăng, dòng "Submitted by … · GPS at posting was N m from the pin"
+  (đỏ nếu > 500 m), bài liên kết tới place đang chờ được đánh dấu; quản lý users (role/suspend/xóa) và places (sửa/xóa).
+- **Mock fallback** khi BE không chạy; typecheck/lint/build sạch.
 
-- **Styling:** CSS Modules next to each component (`Component.module.css`). Colors and
-  sizes come from the CSS variables in `src/styles/global.css`; do not hard-code them.
-- **Imports:** use the `@/` alias for anything under `src/`.
-- **Content vs. UI:** section copy lives in plain `.ts` data files (`services.ts`,
-  `destinations.ts`, `moments.ts`, ...) with no JSX, so text can change without touching markup.
-  Use `<Lines lines={[...]} />` when a heading needs line breaks.
-- **Images:** add files to `public/images`, register them in `src/data/images.ts` with
-  meaningful `alt` text, and add the credit to `public/images/CREDITS.md`.
-- **Motion:** always import GSAP from `@/lib/gsap` (it registers the plugins), and wrap
-  scroll animations in `gsap.matchMedia()` using `MOTION_OK` so users who prefer reduced
-  motion get a static page. Only animate `transform` and `opacity`.
-- **Before committing:** run `npm run lint` and `npm run typecheck`.
+## Còn thiếu
 
-## TODO
-
-- Swap the Wikimedia Commons photos for branded photography if available (change files in
-  `public/images`; keep the same names or update `src/data/images.ts`).
-- Point the store buttons in `sections/Hero` and `sections/Cta` at the real App Store / Google Play URLs.
-
-## Notes on the hero and section stacking
-
-- **Hero slideshow** (`src/sections/Hero`): photos and captions live in `slides.ts`; the interval is
-  `SLIDE_INTERVAL_MS`. Each photo needs a `-1920.webp` and a `-3840.webp` file in `public/images`.
-  Only the first photo loads up front; the rest are cached when the browser is idle.
-- **Brush title:** the hero heading uses `--font-brush` (Yuji Boku), which has Latin letters only.
-  Do not put Vietnamese diacritics in text that uses it.
-- **Stacked sections** (`StackedSection`, used in `App.tsx`): sections pile up on screens wider than
-  960px when motion is allowed. Put in-page anchor ids on the wrapper (`id` prop), not on the
-  section inside, so links still work while a panel is covered.
-
-## Effects added on top
-
-- **Ink-bleed slide transition** (`HeroSlideshow.module.css`): each new hero photo is revealed through
-  a rough-edged ink-blot mask that grows from a point (`INK_ORIGINS` in `HeroSlideshow.tsx`).
-- **Curtain reveal** (`CurtainReveal.tsx`): wrap a photo to have it open from the bottom, with a slight
-  zoom-out, the first time it scrolls into view.
+- **Upload ảnh**: chỉ dán link; chưa có upload file, chưa đọc EXIF GPS từ ảnh để xác thực vị trí.
+- **Dữ liệu thật**: toàn bộ địa điểm/bài viết là seed giả (ảnh picsum); chưa import Google Places.
+- **"Find from reels"**: dán link TikTok/Instagram → tìm ra địa điểm (bước tiếp theo đã chốt, làm BE trước).
+- **Quota / gói trả phí**: chưa giới hạn lượt lên lịch, chưa có thanh toán.
+- **AI thật**: BE chưa có key LLM nên planner chạy heuristic; chưa có thời tiết/giao thông.
+- **Thiết kế lại trang khách hàng + admin** theo phong cách landing (mới làm `/app` shell và Discover).
+- **i18n** (vi/en) chưa có; mobile app chưa có.
+- **Deploy** chưa có; nút App Store/Google Play ở landing chưa trỏ link thật; ảnh landing vẫn từ Wikimedia Commons (xem `public/images/CREDITS.md`).
