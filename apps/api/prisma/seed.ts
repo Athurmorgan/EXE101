@@ -8,6 +8,7 @@
 
 import { Prisma, PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { SEED_PLACES } from './seed-places';
 
 const prisma = new PrismaClient();
 
@@ -103,148 +104,6 @@ const SEED_REGIONS = [
   { name: 'Yen Bai', slug: 'yen-bai', isCity: false, lat: 21.7051, lng: 104.8617 },
 ];
 
-// =============================================================================
-// SAMPLE FOOD PLACES (Stage 1-3)
-// =============================================================================
-interface SeedPlace {
-  name: string;
-  description: string;
-  lat: number;
-  lng: number;
-  address: string;
-  category: string;
-  cuisineType?: string;
-  mealType?: string;
-  priceRange?: string;
-  avgMealPrice?: number;
-  isHiddenPlace?: boolean;
-  regionSlug: string;
-  status?: string;
-  googleRating?: number;
-  googleReviews?: number;
-}
-
-const SEED_PLACES: SeedPlace[] = [
-  // Ha Noi - 5 dia diem mau
-  {
-    name: 'Pho Thin',
-    description: 'Quan pho noi tieng Ha Noi, pho bo tai nuong that ngon',
-    lat: 21.0278, lng: 105.8530,
-    address: '13 Lo Duc, Hai Ba Trung, Ha Noi',
-    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
-    priceRange: 'budget', avgMealPrice: 45000, isHiddenPlace: false,
-    regionSlug: 'ha-noi', status: 'APPROVED', googleRating: 4.5, googleReviews: 1200,
-  },
-  {
-    name: 'Bun Cha Huong Lien',
-    description: 'Quan bun cha noi tieng, nam trong top 10 quat an the gioi',
-    lat: 21.0275, lng: 105.8558,
-    address: '24 Le Van Huu, Hai Ba Trung, Ha Noi',
-    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'lunch',
-    priceRange: 'budget', avgMealPrice: 55000, isHiddenPlace: false,
-    regionSlug: 'ha-noi', status: 'APPROVED', googleRating: 4.6, googleReviews: 890,
-  },
-  {
-    name: 'Cafe Giang',
-    description: 'Noi ban ca phe trung sua dau tien tai Viet Nam',
-    lat: 21.0295, lng: 105.8499,
-    address: '39 Nguyen Huu Huan, Hoan Kiem, Ha Noi',
-    category: 'cafe', cuisineType: 'vietnamese', mealType: 'coffee',
-    priceRange: 'budget', avgMealPrice: 25000, isHiddenPlace: true,
-    regionSlug: 'ha-noi', status: 'APPROVED', googleRating: 4.3, googleReviews: 450,
-  },
-  {
-    name: 'Banh Mi Huynh Hoa',
-    description: 'Banh mi nuong gio chao noi tieng Ha Noi',
-    lat: 21.0234, lng: 105.8548,
-    address: '89 Phung Hung, Hoan Kiem, Ha Noi',
-    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'all-day',
-    priceRange: 'budget', avgMealPrice: 35000, isHiddenPlace: true,
-    regionSlug: 'ha-noi', status: 'APPROVED', googleRating: 4.7, googleReviews: 2100,
-  },
-  {
-    name: 'Hoan Kiem Lake',
-    description: 'Ho tro nuoc bien hinh thanh',
-    lat: 21.0285, lng: 105.8526,
-    address: 'Hoan Kiem, Ha Noi',
-    category: 'attraction',
-    regionSlug: 'ha-noi', status: 'APPROVED', googleRating: 4.6, googleReviews: 15000,
-  },
-
-  // Ho Chi Minh - 5 dia diem mau
-  {
-    name: 'Banh Canh Cua Ca Map',
-    description: 'Quan banh canh cua ngon nhat Sai Gon',
-    lat: 10.7890, lng: 106.6880,
-    address: '46 Nguyen Trung Truc, Quan 1, TP.HCM',
-    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
-    priceRange: 'budget', avgMealPrice: 50000, isHiddenPlace: true,
-    regionSlug: 'tp-ho-chi-minh', status: 'APPROVED', googleRating: 4.4, googleReviews: 780,
-  },
-  {
-    name: 'Com Tam Sai Gon',
-    description: 'Com tam suon bi cha trung - mon an duooi cua nguoi Sai Gon',
-    lat: 10.7762, lng: 106.6985,
-    address: '293 Nguyen Trai, Quan 1, TP.HCM',
-    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'lunch',
-    priceRange: 'budget', avgMealPrice: 40000, isHiddenPlace: false,
-    regionSlug: 'tp-ho-chi-minh', status: 'APPROVED', googleRating: 4.2, googleReviews: 920,
-  },
-  {
-    name: 'Highland Cafe Nguyen Hue',
-    description: 'Cafe Highlands noi tieng, view Saigon River',
-    lat: 10.7728, lng: 106.7042,
-    address: '59 Nguyen Hue, Quan 1, TP.HCM',
-    category: 'cafe', cuisineType: 'international', mealType: 'coffee',
-    priceRange: 'moderate', avgMealPrice: 65000, isHiddenPlace: false,
-    regionSlug: 'tp-ho-chi-minh', status: 'APPROVED', googleRating: 4.1, googleReviews: 1500,
-  },
-  {
-    name: 'Ben Thanh Market',
-    description: 'Cho lon nhat Sai Gon - dau mua sam',
-    lat: 10.7721, lng: 106.6980,
-    address: 'Le Lai, Quan 1, TP.HCM',
-    category: 'shopping',
-    regionSlug: 'tp-ho-chi-minh', status: 'APPROVED', googleRating: 4.3, googleReviews: 18000,
-  },
-  {
-    name: 'Notre Dame Cathedral',
-    description: 'Nha tho lon Saigon, diem tham quan noi tieng',
-    lat: 10.7795, lng: 106.6990,
-    address: 'Cong Truong Cong Vien, Quan 1, TP.HCM',
-    category: 'attraction',
-    regionSlug: 'tp-ho-chi-minh', status: 'APPROVED', googleRating: 4.5, googleReviews: 12000,
-  },
-
-  // Da Nang - 3 dia diem mau
-  {
-    name: 'Mi Quang Ngon',
-    description: 'Mi quang Danang - am thuc cua thanh pho bien',
-    lat: 16.0544, lng: 108.2022,
-    address: '166 Tran Phu, Hai Chau, Da Nang',
-    category: 'restaurant', cuisineType: 'vietnamese', mealType: 'breakfast',
-    priceRange: 'budget', avgMealPrice: 35000, isHiddenPlace: true,
-    regionSlug: 'da-nang', status: 'APPROVED', googleRating: 4.5, googleReviews: 650,
-  },
-  {
-    name: 'My Khe Beach',
-    description: 'Bai bien dep nguoi Danang, noi choi bien cua dia phuong',
-    lat: 16.0605, lng: 108.2415,
-    address: 'Phuoc My, Son Tra, Da Nang',
-    category: 'attraction',
-    regionSlug: 'da-nang', status: 'APPROVED', googleRating: 4.6, googleReviews: 8000,
-  },
-  {
-    name: 'Highland Coffee Tran Phu',
-    description: 'Cafe Highlands view bien',
-    lat: 16.0620, lng: 108.1978,
-    address: '89 Tran Phu, Hai Chau, Da Nang',
-    category: 'cafe', cuisineType: 'international', mealType: 'coffee',
-    priceRange: 'moderate', avgMealPrice: 55000, isHiddenPlace: false,
-    regionSlug: 'da-nang', status: 'APPROVED', googleRating: 4.2, googleReviews: 420,
-  },
-];
-
 async function main(): Promise<void> {
   // Hash mot lan roi dung lai cho moi tai khoan - argon2 rat cham.
   const passwordHash = await argon2.hash(SEED_PASSWORD);
@@ -309,53 +168,56 @@ async function main(): Promise<void> {
   console.log(`Seed ${regionCount} regions (${SEED_REGIONS.filter(r => r.isCity).length} cities + ${SEED_REGIONS.filter(r => !r.isCity).length} provinces)`);
 
   // -------------------------------------------------------------------------
-  // Seed Places (sample food places)
+  // Seed Places (+ gio mo cua) - khop theo name + regionId de chay lai duoc
   // -------------------------------------------------------------------------
   let placeCount = 0;
   for (const place of SEED_PLACES) {
     const regionRecord = await prisma.region.findUnique({ where: { slug: place.regionSlug } });
     if (!regionRecord) continue;
 
-    // Kiem tra place da ton tai chua (theo name + regionId)
+    const data = {
+      description: place.description,
+      lat: place.lat,
+      lng: place.lng,
+      address: place.address,
+      category: place.category,
+      cuisineType: place.cuisineType ?? null,
+      mealType: place.mealType ?? null,
+      priceRange: place.priceRange ?? null,
+      avgMealPrice: place.avgMealPrice ?? null,
+      isHiddenPlace: place.isHiddenPlace ?? false,
+      googleRating: place.googleRating ?? null,
+      googleReviews: place.googleReviews ?? null,
+      aiScore: place.aiScore ?? null,
+    };
+
     const existing = await prisma.place.findFirst({
       where: { name: place.name, regionId: regionRecord.id },
+      select: { id: true },
     });
+    const row = existing
+      ? await prisma.place.update({ where: { id: existing.id }, data })
+      : await prisma.place.create({
+          data: {
+            ...data,
+            name: place.name,
+            regionId: regionRecord.id,
+            status: place.status ?? 'APPROVED',
+            source: 'VERIFIED_LOCAL',
+          },
+        });
 
-    if (existing) {
-      // Cap nhat place
-      await prisma.place.update({
-        where: { id: existing.id },
-        data: {
-          description: place.description,
-          lat: place.lat,
-          lng: place.lng,
-          address: place.address,
-          googleRating: place.googleRating,
-          googleReviews: place.googleReviews,
-        },
-      });
-    } else {
-      // Tao moi
-      await prisma.place.create({
-        data: {
-          name: place.name,
-          description: place.description,
-          lat: place.lat,
-          lng: place.lng,
-          address: place.address,
-          category: place.category,
-          cuisineType: place.cuisineType,
-          mealType: place.mealType,
-          priceRange: place.priceRange,
-          avgMealPrice: place.avgMealPrice,
-          isHiddenPlace: place.isHiddenPlace ?? false,
-          regionId: regionRecord.id,
-          status: place.status ?? 'APPROVED',
-          source: 'VERIFIED_LOCAL',
-          googleRating: place.googleRating,
-          googleReviews: place.googleReviews,
-        },
-      });
+    if (place.hours) {
+      const [openTime, closeTime] = place.hours.split('-') as [string, string];
+      const closed = new Set(place.closedDays ?? []);
+      for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+        const hour = { openTime, closeTime, isClosed: closed.has(dayOfWeek) };
+        await prisma.openingHour.upsert({
+          where: { placeId_dayOfWeek: { placeId: row.id, dayOfWeek } },
+          create: { placeId: row.id, dayOfWeek, ...hour },
+          update: hour,
+        });
+      }
     }
     placeCount++;
   }
