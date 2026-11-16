@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPinPlus, SearchX, Search, Sparkles } from 'lucide-react';
+import { LayoutGrid, Map as MapIcon, MapPinPlus, SearchX, Search, Sparkles } from 'lucide-react';
 import { usePlaces } from '@/hooks/usePlaces';
 import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 import { Container } from '@/components/app-layout/Container';
@@ -10,6 +10,8 @@ import { Chip } from '@/components/app-ui/Chip';
 import { Button } from '@/components/app-ui/Button';
 import { EmptyState } from '@/components/app-ui/EmptyState';
 import { RegionSelect } from '@/components/app-ui/RegionSelect';
+import { PlaceMap } from '@/components/app-ui/PlaceMap';
+import { cn } from '@/lib/cn';
 
 const CATEGORIES: { value: string | undefined; label: string }[] = [
   { value: undefined, label: 'All' },
@@ -25,6 +27,7 @@ export function DiscoverPage() {
   const [category, setCategory] = useState<string | undefined>();
   const [localOnly, setLocalOnly] = useState(false);
   const [regionId, setRegionId] = useState('');
+  const [view, setView] = useState<'list' | 'map'>('list');
   const debouncedQuery = useDebouncedValue(query.trim());
 
   const { places, loading, source } = usePlaces({
@@ -73,7 +76,11 @@ export function DiscoverPage() {
               emptyLabel="All of Vietnam"
               containerClassName="w-full lg:max-w-56"
             />
-            <div role="group" aria-label="Filter by type" className="flex flex-wrap gap-2 lg:ml-auto">
+            <div
+              role="group"
+              aria-label="Filter by type"
+              className="flex flex-wrap gap-2 lg:ml-auto"
+            >
               {CATEGORIES.map((item) => (
                 <Chip
                   key={item.label}
@@ -99,11 +106,36 @@ export function DiscoverPage() {
       <Container className="py-10 sm:py-12">
         <div className="mb-8 flex items-baseline justify-between gap-4 text-sm text-muted">
           <span aria-live="polite">
-            {loading ? 'Loading places…' : `${places.length} ${places.length === 1 ? 'place' : 'places'}`}
+            {loading
+              ? 'Loading places…'
+              : `${places.length} ${places.length === 1 ? 'place' : 'places'}`}
           </span>
           <span className="flex items-center gap-4">
-            {source === 'mock' && !loading && <span className="text-xs">Sample data — API offline</span>}
-            <Link to="/app/places/new" className="inline-flex items-center gap-1.5 text-ink underline-offset-4 hover:underline">
+            {source === 'mock' && !loading && (
+              <span className="text-xs">Sample data — API offline</span>
+            )}
+            <span
+              role="group"
+              aria-label="View"
+              className="inline-flex rounded-md border border-ink/20 p-0.5"
+            >
+              <ViewButton
+                active={view === 'list'}
+                onClick={() => setView('list')}
+                icon={LayoutGrid}
+                label="List"
+              />
+              <ViewButton
+                active={view === 'map'}
+                onClick={() => setView('map')}
+                icon={MapIcon}
+                label="Map"
+              />
+            </span>
+            <Link
+              to="/app/places/new"
+              className="inline-flex items-center gap-1.5 text-ink underline-offset-4 hover:underline"
+            >
               <MapPinPlus className="h-4 w-4" aria-hidden /> Suggest a place
             </Link>
           </span>
@@ -130,6 +162,18 @@ export function DiscoverPage() {
           >
             Try a different name, or widen the filters.
           </EmptyState>
+        ) : view === 'map' ? (
+          <PlaceMap
+            className="h-[32rem]"
+            markers={places.map((place) => ({
+              id: place.id,
+              lat: place.lat,
+              lng: place.lng,
+              title: place.name,
+              subtitle: place.address ?? place.region?.name ?? undefined,
+              href: `/app/places/${place.id}`,
+            }))}
+          />
         ) : (
           <div className="grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
             {places.map((place) => (
@@ -139,5 +183,31 @@ export function DiscoverPage() {
         )}
       </Container>
     </>
+  );
+}
+
+function ViewButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: typeof LayoutGrid;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-medium transition-colors',
+        active ? 'bg-ink text-white' : 'text-muted hover:text-ink',
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" aria-hidden /> {label}
+    </button>
   );
 }

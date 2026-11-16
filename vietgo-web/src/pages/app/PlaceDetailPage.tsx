@@ -6,6 +6,7 @@ import { Container } from '@/components/app-layout/Container';
 import { Badge } from '@/components/app-ui/Badge';
 import { buttonClasses } from '@/components/app-ui/Button';
 import { PlaceCover } from '@/components/app-ui/PlaceCover';
+import { PlaceMap } from '@/components/app-ui/PlaceMap';
 import { ShortlistButton } from '@/components/app-ui/ShortlistButton';
 import { Skeleton } from '@/components/app-ui/Skeleton';
 import { SectionLabel } from '@/components/app-ui/SectionLabel';
@@ -35,7 +36,9 @@ export function PlaceDetailPage() {
     return (
       <Container className="flex flex-col items-center py-32 text-center">
         <h1 className="font-serif text-3xl text-ink">Place not found</h1>
-        <p className="mt-2 text-sm text-muted">It may have been removed or is still awaiting review.</p>
+        <p className="mt-2 text-sm text-muted">
+          It may have been removed or is still awaiting review.
+        </p>
         <Link to="/app/discover" className={buttonClasses('outline', 'md', 'mt-6')}>
           <ArrowLeft className="h-4 w-4" aria-hidden />
           Back to Discover
@@ -46,7 +49,10 @@ export function PlaceDetailPage() {
 
   const candidates: (Fact | false | null | '')[] = [
     place.priceRange && { label: 'Price', value: priceLabel(place.priceRange) },
-    place.avgMealPrice != null && { label: 'Per person', value: `~${formatVnd(place.avgMealPrice)}` },
+    place.avgMealPrice != null && {
+      label: 'Per person',
+      value: `~${formatVnd(place.avgMealPrice)}`,
+    },
     place.mealType && { label: 'Best for', value: mealLabel(place.mealType) },
     place.cuisineType && { label: 'Cuisine', value: categoryLabel(place.cuisineType) },
     place.googleRating != null && {
@@ -175,21 +181,38 @@ export function PlaceDetailPage() {
           </div>
         </div>
 
-        {facts.length > 0 && (
-          <aside className="h-fit rounded-lg border border-ink/15 bg-white lg:sticky lg:top-28">
-            <h2 className="border-b border-ink/10 px-5 py-3 text-xs font-medium tracking-wider text-muted uppercase">
-              At a glance
-            </h2>
-            <dl className="divide-y divide-ink/10 text-sm">
-              {facts.map((fact) => (
-                <div key={fact.label} className="flex items-center justify-between gap-4 px-5 py-3.5">
-                  <dt className="text-muted">{fact.label}</dt>
-                  <dd className="text-right text-ink">{fact.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </aside>
-        )}
+        <div className="h-fit space-y-6 lg:sticky lg:top-28">
+          <PlaceMap
+            className="h-64"
+            markers={[
+              {
+                id: place.id,
+                lat: place.lat,
+                lng: place.lng,
+                title: place.name,
+                subtitle: place.address ?? undefined,
+              },
+            ]}
+          />
+          {facts.length > 0 && (
+            <aside className="rounded-lg border border-ink/15 bg-white">
+              <h2 className="border-b border-ink/10 px-5 py-3 text-xs font-medium tracking-wider text-muted uppercase">
+                At a glance
+              </h2>
+              <dl className="divide-y divide-ink/10 text-sm">
+                {facts.map((fact) => (
+                  <div
+                    key={fact.label}
+                    className="flex items-center justify-between gap-4 px-5 py-3.5"
+                  >
+                    <dt className="text-muted">{fact.label}</dt>
+                    <dd className="text-right text-ink">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
+          )}
+        </div>
       </Container>
     </article>
   );
@@ -197,7 +220,7 @@ export function PlaceDetailPage() {
 
 function DetailSkeleton() {
   return (
-    <Container className="pt-8 pb-20" >
+    <Container className="pt-8 pb-20">
       <Skeleton className="h-3 w-40" />
       <Skeleton className="mt-10 h-3 w-24" />
       <Skeleton className="mt-5 h-12 w-2/3" />

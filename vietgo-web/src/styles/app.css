@@ -114,3 +114,86 @@
     transform-origin: left;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Leaflet map (PlaceMap): numbered pins + popups in the app palette.
+   --------------------------------------------------------------------------- */
+.vv-map {
+  font-family: inherit;
+  isolation: isolate;
+}
+.vv-map .leaflet-container {
+  font: inherit;
+  background: var(--color-cream);
+}
+.vv-map .leaflet-control-zoom a {
+  color: var(--color-ink);
+  background: var(--color-white);
+  border-color: color-mix(in srgb, var(--color-ink) 20%, transparent);
+}
+.vv-map .leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-white) 85%, transparent);
+  color: var(--color-muted);
+  font-size: 10px;
+}
+.vv-pin {
+  background: none;
+  border: 0;
+}
+.vv-pin__body {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  background: var(--pin, var(--color-gold-deep));
+  color: var(--color-white);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.25);
+  border: 2px solid var(--color-white);
+}
+.vv-pin__body > i {
+  font-style: normal;
+  transform: rotate(45deg); /* un-rotate the label */
+}
+.vv-pin__body:empty::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-white);
+}
+.vv-map .leaflet-popup-content-wrapper {
+  border-radius: 6px;
+  background: var(--color-white);
+  color: var(--color-ink);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+}
+.vv-map .leaflet-popup-tip {
+  background: var(--color-white);
+}
+.vv-map .leaflet-popup-content {
+  margin: 10px 14px;
+  line-height: 1.35;
+}
+.vv-popup {
+  display: grid;
+  gap: 2px;
+}
+.vv-popup__title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 15px;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+a.vv-popup__title:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.vv-popup__sub {
+  font-size: 12px;
+  color: var(--color-muted);
+}
