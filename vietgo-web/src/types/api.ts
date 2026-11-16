@@ -81,6 +81,12 @@ export interface Place {
   region?: Region | null;
   photos?: PlacePhoto[];
   openingHours?: OpeningHour[];
+  /** Only on nearby searches. */
+  distanceM?: number;
+  /** Where the submitter was when they sent it (user-submitted places). */
+  checkinLat?: number | null;
+  checkinLng?: number | null;
+  submittedBy?: { id: string; fullName: string; email?: string } | null;
 }
 
 export interface PlaceListResponse {
@@ -215,7 +221,15 @@ export interface Itinerary {
   createdAt: string;
 }
 
-export const TRIP_STYLES = ['foodie', 'cultural', 'relaxation', 'adventure', 'family', 'budget', 'luxury'] as const;
+export const TRIP_STYLES = [
+  'foodie',
+  'cultural',
+  'relaxation',
+  'adventure',
+  'family',
+  'budget',
+  'luxury',
+] as const;
 export type TripStyle = (typeof TRIP_STYLES)[number];
 
 export const DIETARY_OPTIONS = ['none', 'vegetarian', 'vegan', 'halal', 'gluten-free'] as const;

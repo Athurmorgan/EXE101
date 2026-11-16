@@ -5,27 +5,42 @@ import { toPlacePayload, type PlaceDraft } from '@/lib/placeDraft';
 
 /** Sends a place suggestion to the moderation queue. */
 export function useSubmitPlace() {
-  return useMutation((draft: PlaceDraft) => submitPlace(toPlacePayload(draft)), 'Could not submit this place.');
+  return useMutation(
+    (draft: PlaceDraft) => submitPlace(toPlacePayload(draft)),
+    'Could not submit this place.',
+  );
+}
+
+export interface GeoFix {
+  lat: number;
+  lng: number;
+  /** Radius the browser is confident in, in metres. */
+  accuracyM: number;
 }
 
 /** Browser geolocation as a promise, with a busy flag for the button. */
 export function useGeolocation() {
   const [locating, setLocating] = useState(false);
 
-  function locate(): Promise<{ lat: number; lng: number }> {
-    if (!('geolocation' in navigator)) return Promise.reject(new Error('Your browser does not share location.'));
+  function locate(): Promise<GeoFix> {
+    if (!('geolocation' in navigator))
+      return Promise.reject(new Error('Your browser does not share location.'));
     setLocating(true);
     return new Promise((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           setLocating(false);
-          resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          resolve({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracyM: pos.coords.accuracy,
+          });
         },
         () => {
           setLocating(false);
           reject(new Error('Location permission was denied.'));
         },
-        { timeout: 10_000 },
+        { timeout: 10_000, enableHighAccuracy: true },
       );
     });
   }

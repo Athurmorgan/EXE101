@@ -9,6 +9,10 @@ export interface PlaceSearchParams {
   mealType?: string;
   priceRange?: string;
   isHiddenPlace?: boolean;
+  /** Search around a point; results come back nearest first with `distanceM`. */
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
   page?: number;
   limit?: number;
   sortBy?: 'name' | 'googleRating';
@@ -36,6 +40,9 @@ export interface NewPlacePayload {
   avgMealPrice?: number;
   regionId?: string;
   isHiddenPlace?: boolean;
+  /** GPS fix of the submitter at the time — "I'm standing here" evidence for moderators. */
+  checkinLat?: number;
+  checkinLng?: number;
 }
 
 /** User submissions land as `PENDING` and only show up after moderation. */

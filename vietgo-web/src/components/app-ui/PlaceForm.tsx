@@ -58,7 +58,7 @@ export function PlaceForm({ initial, submitLabel, cancelTo, busy, error, onSubmi
   async function locateMe() {
     try {
       const { lat, lng } = await locate();
-      setForm((f) => ({ ...f, lat: lat.toFixed(6), lng: lng.toFixed(6) }));
+      setForm((f) => ({ ...f, lat: lat.toFixed(6), lng: lng.toFixed(6), checkinLat: String(lat), checkinLng: String(lng) }));
     } catch (err) {
       setErrors((e) => ({ ...e, lat: (err as Error).message }));
     }

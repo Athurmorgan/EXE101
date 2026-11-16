@@ -12,7 +12,8 @@ export function hasErrors(errors: FieldErrors): boolean {
 /** packages/shared: PASSWORD_MIN_LENGTH = 8, must contain a letter and a digit. */
 export function passwordProblem(password: string): string | null {
   if (password.length < 8) return 'Use at least 8 characters.';
-  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) return 'Include at least one letter and one number.';
+  if (!/[a-zA-Z]/.test(password) || !/\d/.test(password))
+    return 'Include at least one letter and one number.';
   return null;
 }
 
@@ -34,7 +35,11 @@ export function splitLines(text: string): string[] {
 
 // --- Auth --------------------------------------------------------------------
 
-export function validateRegistration(input: { fullName: string; email: string; password: string }): FieldErrors {
+export function validateRegistration(input: {
+  fullName: string;
+  email: string;
+  password: string;
+}): FieldErrors {
   const errors: FieldErrors = {};
   if (!input.fullName.trim()) errors.fullName = 'Tell us what to call you.';
   if (!input.email) errors.email = 'Enter your email.';
@@ -44,10 +49,16 @@ export function validateRegistration(input: { fullName: string; email: string; p
 }
 
 export function validateProfile(input: { fullName: string }): FieldErrors {
-  return input.fullName.trim().length < 2 ? { fullName: 'Your name needs at least 2 characters.' } : {};
+  return input.fullName.trim().length < 2
+    ? { fullName: 'Your name needs at least 2 characters.' }
+    : {};
 }
 
-export function validatePasswordChange(input: { current: string; next: string; confirm: string }): FieldErrors {
+export function validatePasswordChange(input: {
+  current: string;
+  next: string;
+  confirm: string;
+}): FieldErrors {
   const errors: FieldErrors = {};
   if (!input.current) errors.current = 'Enter your current password.';
   const problem = passwordProblem(input.next);
@@ -60,14 +71,33 @@ export function validatePasswordChange(input: { current: string; next: string; c
 // --- Community ---------------------------------------------------------------
 
 /** Same limits as the BE's CreatePostDto. */
-export const POST_LIMITS = { titleMin: 5, titleMax: 200, contentMin: 10, contentMax: 5000 } as const;
+export const POST_LIMITS = {
+  titleMin: 5,
+  titleMax: 200,
+  contentMin: 10,
+  contentMax: 5000,
+} as const;
 
-export function validatePost(input: { title: string; content: string; imageUrls: string[] }): FieldErrors {
+export function validatePost(input: {
+  title: string;
+  content: string;
+  imageUrls: string[];
+  /** Set when the story also adds a place that isn't listed yet. */
+  newPlace?: { name: string; hasPin: boolean };
+}): FieldErrors {
   const errors: FieldErrors = {};
-  if (input.title.trim().length < POST_LIMITS.titleMin) errors.title = `At least ${POST_LIMITS.titleMin} characters.`;
+  if (input.newPlace) {
+    const name = input.newPlace.name.trim();
+    if (name.length < 2 || name.length > 200)
+      errors.placeName = 'Give the place a name (2–200 characters).';
+    if (!input.newPlace.hasPin) errors.pin = 'Drop a pin so we know where it is.';
+  }
+  if (input.title.trim().length < POST_LIMITS.titleMin)
+    errors.title = `At least ${POST_LIMITS.titleMin} characters.`;
   if (input.content.trim().length < POST_LIMITS.contentMin) {
     errors.content = `At least ${POST_LIMITS.contentMin} characters.`;
   }
-  if (input.imageUrls.some((url) => !isHttpUrl(url))) errors.images = 'One link per line, each starting with http(s)://';
+  if (input.imageUrls.some((url) => !isHttpUrl(url)))
+    errors.images = 'One link per line, each starting with http(s)://';
   return errors;
 }

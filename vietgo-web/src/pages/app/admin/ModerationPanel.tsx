@@ -1,9 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Inbox, Loader2, MapPin, X } from 'lucide-react';
-import { useModerationQueues, type Decision as DecisionKind, type QueueKind as Kind } from '@/hooks/useModeration';
+import {
+  useModerationQueues,
+  type Decision as DecisionKind,
+  type QueueKind as Kind,
+} from '@/hooks/useModeration';
 import { useMutation } from '@/hooks/useMutation';
 import { categoryLabel, formatDate, mapsUrl } from '@/lib/format';
+import { distanceM, formatDistance } from '@/lib/geo';
 import type { PendingPlace, Post } from '@/types/api';
 import { cn } from '@/lib/cn';
 import { Alert } from '@/components/app-ui/Alert';
@@ -12,6 +17,7 @@ import { Button } from '@/components/app-ui/Button';
 import { EmptyState } from '@/components/app-ui/EmptyState';
 import { Input } from '@/components/app-ui/Input';
 import { Skeleton } from '@/components/app-ui/Skeleton';
+import { PlaceMap, type MapMarker } from '@/components/app-ui/PlaceMap';
 
 type Decide = (decision: DecisionKind, note?: string) => Promise<void>;
 
@@ -37,7 +43,9 @@ export function ModerationPanel() {
             onClick={() => setKind(tab.id)}
             className={cn(
               '-mb-px border-b-2 pb-3 text-sm font-medium transition-colors',
-              kind === tab.id ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
+              kind === tab.id
+                ? 'border-ink text-ink'
+                : 'border-transparent text-muted hover:text-ink',
             )}
           >
             {tab.label}
@@ -59,7 +67,12 @@ export function ModerationPanel() {
           items={posts.data?.data ?? []}
           kind="posts"
           decide={(id, decision, note) => decide('posts', id, decision, note)}
-          render={(post) => <PostSummary post={post} />}
+          render={(post) => (
+            <PostSummary
+              post={post}
+              pendingPlace={places.data?.data.find((p) => p.id === post.placeId)}
+            />
+          )}
         />
       ) : (
         <Queue
@@ -140,7 +153,12 @@ function Decision({ decide: onDecide }: { decide: Decide }) {
         </div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          <Button variant="dark" size="sm" onClick={() => decide('approve')} disabled={busy !== null}>
+          <Button
+            variant="dark"
+            size="sm"
+            onClick={() => decide('approve')}
+            disabled={busy !== null}
+          >
             {busy === 'approve' ? (
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
             ) : (
@@ -148,7 +166,12 @@ function Decision({ decide: onDecide }: { decide: Decide }) {
             )}
             Approve
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setRejecting(true)} disabled={busy !== null}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setRejecting(true)}
+            disabled={busy !== null}
+          >
             <X className="h-4 w-4" aria-hidden /> Reject…
           </Button>
         </div>
@@ -157,7 +180,7 @@ function Decision({ decide: onDecide }: { decide: Decide }) {
   );
 }
 
-function PostSummary({ post }: { post: Post }) {
+function PostSummary({ post, pendingPlace }: { post: Post; pendingPlace?: PendingPlace }) {
   return (
     <article>
       <p className="text-xs text-muted">
@@ -165,7 +188,9 @@ function PostSummary({ post }: { post: Post }) {
         {post.author?.email && <> · {post.author.email}</>} · {formatDate(post.createdAt)}
       </p>
       <h3 className="mt-2 font-serif text-xl text-ink">{post.title}</h3>
-      <p className="mt-2 line-clamp-4 text-sm leading-relaxed whitespace-pre-line text-muted">{post.content}</p>
+      <p className="mt-2 line-clamp-4 text-sm leading-relaxed whitespace-pre-line text-muted">
+        {post.content}
+      </p>
       {post.media && post.media.length > 0 && (
         <div className="mt-3 flex gap-2">
           {post.media.slice(0, 4).map((m) => (
@@ -173,16 +198,41 @@ function PostSummary({ post }: { post: Post }) {
           ))}
         </div>
       )}
-      {post.placeId && (
-        <Link to={`/app/places/${post.placeId}`} className="mt-3 inline-block text-xs text-gold-deep underline">
+      {post.placeId && pendingPlace ? (
+        <p className="mt-3 text-xs text-muted">
+          <MapPin className="mr-1 inline h-3.5 w-3.5" aria-hidden />
+          Linked to <span className="font-medium text-ink">{pendingPlace.name}</span> — a new place
+          waiting in the Places queue.
+        </p>
+      ) : post.placeId ? (
+        <Link
+          to={`/app/places/${post.placeId}`}
+          className="mt-3 inline-block text-xs text-gold-deep underline"
+        >
           Linked place
         </Link>
-      )}
+      ) : null}
     </article>
   );
 }
 
 function PlaceSummary({ place }: { place: PendingPlace }) {
+  const hasCheckin = place.checkinLat != null && place.checkinLng != null;
+  const away = hasCheckin
+    ? distanceM(place.checkinLat!, place.checkinLng!, place.lat, place.lng)
+    : null;
+  const markers: MapMarker[] = [
+    { id: place.id, lat: place.lat, lng: place.lng, title: place.name },
+  ];
+  if (hasCheckin) {
+    markers.push({
+      id: 'checkin',
+      lat: place.checkinLat!,
+      lng: place.checkinLng!,
+      title: 'Submitter was here',
+      variant: 'dot',
+    });
+  }
   return (
     <article>
       <div className="flex flex-wrap items-center gap-2">
@@ -196,7 +246,26 @@ function PlaceSummary({ place }: { place: PendingPlace }) {
       <p className="mt-1 text-sm text-muted">
         {[place.address, place.region?.name].filter(Boolean).join(' · ') || 'No address given'}
       </p>
-      {place.description && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink">{place.description}</p>}
+      {place.description && (
+        <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-ink">{place.description}</p>
+      )}
+      <PlaceMap className="mt-4 h-48" markers={markers} />
+      <p className="mt-2 text-xs text-muted">
+        Submitted by{' '}
+        <span className="font-medium text-ink">{place.submittedBy?.fullName ?? 'unknown'}</span>
+        {place.submittedBy?.email && <> · {place.submittedBy.email}</>}
+        {away != null ? (
+          <>
+            {' '}
+            · GPS at posting was{' '}
+            <span className={cn('font-medium', away > 500 ? 'text-red' : 'text-forest')}>
+              {formatDistance(away)} from the pin
+            </span>
+          </>
+        ) : (
+          <> · no GPS shared</>
+        )}
+      </p>
       <a
         href={mapsUrl(place.lat, place.lng)}
         target="_blank"

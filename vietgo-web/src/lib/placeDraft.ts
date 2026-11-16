@@ -6,7 +6,15 @@ import type { FieldErrors } from './validation';
 
 /** Enum values accepted by the BE's CreatePlaceDto. */
 export const PLACE_CATEGORIES = ['restaurant', 'cafe', 'attraction', 'hotel', 'shopping'];
-export const CUISINES = ['vietnamese', 'bbq', 'seafood', 'vegetarian', 'international', 'dessert', 'street-food'];
+export const CUISINES = [
+  'vietnamese',
+  'bbq',
+  'seafood',
+  'vegetarian',
+  'international',
+  'dessert',
+  'street-food',
+];
 export const MEALS = ['breakfast', 'lunch', 'dinner', 'coffee', 'all-day'];
 export const PRICES = ['budget', 'moderate', 'high-end'];
 
@@ -23,6 +31,9 @@ export const EMPTY_PLACE_DRAFT = {
   priceRange: '',
   avgMealPrice: '',
   isHiddenPlace: false,
+  /** Filled only by "I'm there right now". */
+  checkinLat: '',
+  checkinLng: '',
 };
 
 export type PlaceDraft = typeof EMPTY_PLACE_DRAFT;
@@ -36,9 +47,12 @@ export function validatePlaceDraft(draft: PlaceDraft): FieldErrors {
   const lng = Number(draft.lng);
   const errors: FieldErrors = {};
   if (draft.name.trim().length < 2) errors.name = 'Give it a name (2+ characters).';
-  if (draft.lat === '' || !Number.isFinite(lat) || Math.abs(lat) > 90) errors.lat = 'Latitude between -90 and 90.';
-  if (draft.lng === '' || !Number.isFinite(lng) || Math.abs(lng) > 180) errors.lng = 'Longitude between -180 and 180.';
-  if (draft.avgMealPrice && !(Number(draft.avgMealPrice) >= 0)) errors.avgMealPrice = 'A positive amount in VND.';
+  if (draft.lat === '' || !Number.isFinite(lat) || Math.abs(lat) > 90)
+    errors.lat = 'Latitude between -90 and 90.';
+  if (draft.lng === '' || !Number.isFinite(lng) || Math.abs(lng) > 180)
+    errors.lng = 'Longitude between -180 and 180.';
+  if (draft.avgMealPrice && !(Number(draft.avgMealPrice) >= 0))
+    errors.avgMealPrice = 'A positive amount in VND.';
   return errors;
 }
 
@@ -53,6 +67,8 @@ export function toPlacePayload(draft: PlaceDraft): NewPlacePayload {
     regionId: draft.regionId || undefined,
     description: draft.description.trim() || undefined,
     isHiddenPlace: draft.isHiddenPlace,
+    checkinLat: draft.checkinLat ? Number(draft.checkinLat) : undefined,
+    checkinLng: draft.checkinLng ? Number(draft.checkinLng) : undefined,
     ...(isFoodPlace(draft) && {
       cuisineType: draft.cuisineType || undefined,
       mealType: draft.mealType || undefined,
@@ -77,5 +93,7 @@ export function toPlaceDraft(place: Place): PlaceDraft {
     priceRange: place.priceRange ?? '',
     avgMealPrice: place.avgMealPrice != null ? String(place.avgMealPrice) : '',
     isHiddenPlace: place.isHiddenPlace,
+    checkinLat: place.checkinLat != null ? String(place.checkinLat) : '',
+    checkinLng: place.checkinLng != null ? String(place.checkinLng) : '',
   };
 }

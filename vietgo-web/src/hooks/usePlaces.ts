@@ -16,7 +16,8 @@ interface UsePlacesResult {
  * (see `docs/PROJECT_STATUS.md` §11, lesson 13): never let an unreachable
  * dependency crash the view — fall back to something that still renders.
  */
-export function usePlaces(params: PlaceSearchParams = {}): UsePlacesResult {
+/** `enabled: false` skips the request (e.g. until the user has picked a point). */
+export function usePlaces(params: PlaceSearchParams = {}, enabled = true): UsePlacesResult {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +26,11 @@ export function usePlaces(params: PlaceSearchParams = {}): UsePlacesResult {
 
   useEffect(() => {
     let active = true;
+    if (!enabled) {
+      setPlaces([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -57,7 +63,7 @@ export function usePlaces(params: PlaceSearchParams = {}): UsePlacesResult {
     // `params` is re-serialized into `key` on purpose — searchPlaces takes a
     // fresh object each render otherwise and this would refetch forever.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key]);
+  }, [key, enabled]);
 
   return { places, loading, error, source };
 }
