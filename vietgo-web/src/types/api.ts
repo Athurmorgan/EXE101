@@ -201,10 +201,25 @@ export interface Itinerary {
   days: number;
   status: ItineraryStatus;
   selectedOption: number | null;
+  /** Budget per person until a plan is chosen; then that plan's estimated cost. */
   estimatedCost: number | null;
+  travelers: number | null;
+  styles: TripStyle[];
+  dietary: Dietary | null;
+  /** Where each day starts: a hotel or the traveller's location. Null = city centre. */
+  startLat: number | null;
+  startLng: number | null;
+  startLabel: string | null;
+  preferredPlaceIds: string[];
   stops?: ItineraryStop[];
   createdAt: string;
 }
+
+export const TRIP_STYLES = ['foodie', 'cultural', 'relaxation', 'adventure', 'family', 'budget', 'luxury'] as const;
+export type TripStyle = (typeof TRIP_STYLES)[number];
+
+export const DIETARY_OPTIONS = ['none', 'vegetarian', 'vegan', 'halal', 'gluten-free'] as const;
+export type Dietary = (typeof DIETARY_OPTIONS)[number];
 
 export interface ScheduleStop {
   placeId: string;

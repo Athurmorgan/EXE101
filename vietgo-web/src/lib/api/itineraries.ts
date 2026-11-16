@@ -1,5 +1,5 @@
 import { api } from './client';
-import type { Itinerary } from '@/types/api';
+import type { Dietary, Itinerary, TripStyle } from '@/types/api';
 
 export function listItineraries(): Promise<Itinerary[]> {
   return api.get<Itinerary[]>('/itineraries');
@@ -15,7 +15,16 @@ export interface NewItineraryPayload {
   startDate: string;
   endDate: string;
   title?: string;
+  /** Per person, for the whole trip. */
   budgetVnd?: number;
+  travelers?: number;
+  styles?: TripStyle[];
+  dietary?: Dietary;
+  /** Place ids that every plan must include (from the shortlist). */
+  preferredPlaceIds?: string[];
+  startLat?: number;
+  startLng?: number;
+  startLabel?: string;
 }
 
 export function createItinerary(payload: NewItineraryPayload): Promise<Itinerary> {

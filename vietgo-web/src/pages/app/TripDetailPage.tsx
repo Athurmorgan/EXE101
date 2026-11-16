@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, Clock, Coffee, Loader2, MapPin, RefreshCw, Sparkles, Trash2, Utensils } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Coffee, Loader2, LocateFixed, MapPin, RefreshCw, Route, Sparkles, Trash2, Utensils } from 'lucide-react';
 import { useTrip } from '@/hooks/useTrips';
 import { formatDate, formatVnd, mapsUrl, mealLabel } from '@/lib/format';
 import { addDays, tripTitle } from '@/lib/itinerary';
@@ -67,7 +67,13 @@ export function TripDetailPage() {
               </h1>
               <p className="mt-4 text-muted">
                 {formatDate(trip.startDate)} – {formatDate(trip.endDate)}
+                {trip.travelers != null && ` · ${trip.travelers} ${trip.travelers === 1 ? 'traveller' : 'travellers'}`}
               </p>
+              {trip.startLabel && (
+                <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted">
+                  <LocateFixed className="h-3.5 w-3.5" aria-hidden /> Days start from {trip.startLabel}
+                </p>
+              )}
             </div>
             <div className="flex flex-wrap gap-3">
               {!applied && (
@@ -167,6 +173,7 @@ export function TripDetailPage() {
                           })}
                         </span>
                       </h2>
+                      <DayTravel stops={stops} />
                       <ol className="mt-2">
                         {stops.map((stop) => (
                           <StopRow key={stop.id} stop={stop} />
@@ -180,6 +187,18 @@ export function TripDetailPage() {
         </>
       )}
     </Container>
+  );
+}
+
+/** Total time on the move across a day, summed from the scheduler's per-stop legs. */
+function DayTravel({ stops }: { stops: ItineraryStop[] }) {
+  const travelMin = stops.reduce((sum, s) => sum + (s.travelTimeFromPrevMin ?? 0), 0);
+  if (travelMin <= 0) return null;
+  const label = travelMin >= 60 ? `${Math.floor(travelMin / 60)} h ${travelMin % 60} min` : `${travelMin} min`;
+  return (
+    <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-muted">
+      <Route className="h-3.5 w-3.5" aria-hidden /> {label} getting around · {stops.length} stops
+    </p>
   );
 }
 
