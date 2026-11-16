@@ -101,6 +101,9 @@ model User {
   /// Khu vuc duoc gan cho Manager (neu role = MANAGER).
   managerRegions ManagerRegion[]
 
+  /// Dia diem do user nay de xuat (USER_SUBMITTED).
+  submittedPlaces Place[] @relation("PlaceSubmitter")
+
   @@index([status], map: "user_status_idx")
   /// Truyen thuong xuyen khi Admin xem danh sach theo role.
   @@index([role], map: "user_role_idx")
@@ -279,6 +282,12 @@ model Place {
 
   /// Diem AI danh gia chat luong (0-10), dung cho ranking itinerary.
   aiScore Float? @map("ai_score")
+
+  /// Vi tri GPS cua nguoi gui luc dang (de moderator so voi ghim tren ban do).
+  checkinLat    Float?  @map("checkin_lat")
+  checkinLng    Float?  @map("checkin_lng")
+  submittedById String? @map("submitted_by_id") @db.Uuid
+  submittedBy   User?   @relation("PlaceSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
 
   photos         PlacePhoto[]
   openingHours   OpeningHour[]

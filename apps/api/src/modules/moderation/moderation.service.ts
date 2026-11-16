@@ -33,7 +33,7 @@ export class ModerationService {
     const where = user.role === 'ADMIN' ? { status: 'PENDING' } : { status: 'PENDING', regionId: { in: allowedRegionIds } };
     const [total, rows] = await Promise.all([
       this.prisma.place.count({ where }),
-      this.prisma.place.findMany({ where, orderBy: { createdAt: 'asc' }, skip: (page - 1) * limit, take: limit, include: { region: true } }),
+      this.prisma.place.findMany({ where, orderBy: { createdAt: 'asc' }, skip: (page - 1) * limit, take: limit, include: { region: true, submittedBy: { select: { id: true, fullName: true, email: true } } } }),
     ]);
     return { data: rows, total };
   }

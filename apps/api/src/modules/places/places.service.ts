@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { haversineDistance, estimateTravelTime } from '../../common/utils/geo-distance';
+import { haversineDistance, estimateTravelTime, boundingBox } from '../../common/utils/geo-distance';
 import { cacheKey } from '../../common/utils/cache-key';
 import { RedisService } from '../../common/services/redis.service';
 import type { Prisma, Place } from '@prisma/client';
@@ -36,7 +36,9 @@ export class PlacesService {
     avgMealPrice?: number;
     regionId?: string;
     isHiddenPlace?: boolean;
-  }): Promise<Place> {
+    checkinLat?: number;
+    checkinLng?: number;
+  }, submitter?: { id: string }): Promise<Place> {
     const created = await this.prisma.place.create({
       data: {
         name: data.name,
@@ -51,6 +53,9 @@ export class PlacesService {
         avgMealPrice: data.avgMealPrice,
         regionId: data.regionId,
         isHiddenPlace: data.isHiddenPlace ?? false,
+        checkinLat: data.checkinLat,
+        checkinLng: data.checkinLng,
+        submittedById: submitter?.id,
         source: 'USER_SUBMITTED',
         status: 'PENDING',
       },
@@ -105,10 +110,21 @@ export class PlacesService {
     q?: string; category?: string; regionId?: string; cuisineType?: string; mealType?: string; priceRange?: string;
     isHiddenPlace?: boolean; lat?: number; lng?: number; radiusKm?: number;
     page?: number; limit?: number; sortBy?: string; order?: 'asc' | 'desc';
-  }): Promise<{ data: Place[]; total: number; page: number; limit: number }> {
+  }): Promise<{ data: Array<Place & { distanceM?: number }>; total: number; page: number; limit: number }> {
     const page = query.page ?? 1;
     const limit = query.limit ?? 20;
     const where: Prisma.PlaceWhereInput = { status: 'APPROVED' };
+
+    // Tim quanh mot toa do: loc tho bang bbox trong SQL, roi tinh haversine chinh xac.
+    const near =
+      query.lat !== undefined && query.lng !== undefined
+        ? { lat: query.lat, lng: query.lng, radiusKm: query.radiusKm ?? 10 }
+        : null;
+    if (near) {
+      const box = boundingBox(near.lat, near.lng, near.radiusKm);
+      where.lat = { gte: box.minLat, lte: box.maxLat };
+      where.lng = { gte: box.minLng, lte: box.maxLng };
+    }
 
     if (query.q) where.name = { contains: query.q, mode: 'insensitive' };
     if (query.category) where.category = query.category;
@@ -141,6 +157,18 @@ export class PlacesService {
       }),
       30, // 30s — search results co the doi khi admin duyet them
       async () => {
+        if (near) {
+          // Ban kinh thuong nho (vai tram met) → lay het trong bbox roi sap theo khoang cach.
+          const rows = await this.prisma.place.findMany({
+            where, take: 500,
+            include: { region: true, photos: { orderBy: { uploadedAt: 'desc' }, take: 1 } },
+          });
+          const withDistance = rows
+            .map((p) => ({ ...p, distanceM: Math.round(haversineDistance(near.lat, near.lng, p.lat, p.lng) * 1000) }))
+            .filter((p) => p.distanceM <= near.radiusKm * 1000)
+            .sort((a, b) => a.distanceM - b.distanceM);
+          return { data: withDistance.slice((page - 1) * limit, page * limit), total: withDistance.length, page, limit };
+        }
         const [total, rows] = await Promise.all([
           this.prisma.place.count({ where }),
           this.prisma.place.findMany({

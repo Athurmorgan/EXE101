@@ -97,6 +97,15 @@ export class CreatePlaceDto {
   @IsOptional()
   @IsBoolean()
   isHiddenPlace?: boolean;
+
+  /** Toa do GPS cua nguoi gui luc dang — bang chung "toi dang o day". */
+  @IsOptional()
+  @IsLatitude()
+  checkinLat?: number;
+
+  @IsOptional()
+  @IsLongitude()
+  checkinLng?: number;
 }
 
 /** Body cap nhat Place. */

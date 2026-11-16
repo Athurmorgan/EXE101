@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post, Put, Query } from '@nestjs/common';
-import { Public, Roles } from '../../common/decorators';
+import { CurrentUser, Public, Roles, type AuthUser } from '../../common/decorators';
 import { CreatePlaceDto, UpdatePlaceDto } from './dto/place.dto';
 import { PlacesService } from './places.service';
 import type { Place } from '@prisma/client';
@@ -36,8 +36,8 @@ export class PlacesController {
   }
 
   @Post()
-  create(@Body() body: CreatePlaceDto) {
-    return this.placesService.create(body);
+  create(@CurrentUser() user: AuthUser, @Body() body: CreatePlaceDto) {
+    return this.placesService.create(body, user);
   }
 
   // Sua/xoa dia diem dang hien thi cho moi nguoi → chi ADMIN. User thuong chi
