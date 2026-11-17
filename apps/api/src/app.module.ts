@@ -23,6 +23,7 @@ import { CommunityModule } from './modules/community/community.module';
 import { ModerationModule } from './modules/moderation/moderation.module';
 import { AiModule } from './modules/ai/ai.module';
 import { ItineraryModule } from './modules/itinerary/itinerary.module';
+import { MapsModule } from './modules/maps/maps.module';
 
 @Module({
   imports: [
@@ -49,6 +50,8 @@ import { ItineraryModule } from './modules/itinerary/itinerary.module';
     // === STAGE 4, 6: AI Itinerary Planning ===
     AiModule,
     ItineraryModule,
+    // === Maps (OSRM + Nominatim) ===
+    MapsModule,
   ],
   controllers: [HealthController],
   providers: [
