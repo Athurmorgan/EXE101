@@ -20,21 +20,21 @@
 | **Giai đoạn hiện tại** | **Milestone 1 — Foundation** |
 | **Tiến độ M1** | **13 / 13 task** — auth + RBAC + regions + places + shortlist + comments + reactions + community + moderation + AI itinerary |
 | **Trạng thái** | ✅ **API đang chạy thật** tại `http://localhost:3000/api/v1` · Swagger UI tại `/api/docs` |
-| **Cập nhật lần cuối** | 2026-10-15 |
-| **Cập nhật bởi** | phiên 6 — Performance quick-wins (gzip + Cache-Control + Redis cache + composite indexes) |
+| **Cập nhật lần cuối** | 2026-11-17 |
+| **Cập nhật bởi** | pull branch `be` — ghi nhận commit 15–17/11 (places, AI planner, seed, maps) |
 
 ### Chỉ số nhanh
 
 ```text
 Backend : ████████████████████ 100%   (13/13 task)
-Modules : 11 modules (auth · users · audit · regions · places · shortlist ·
-                     comments · reactions · community · moderation · ai · itinerary)
+Modules : 12 modules (auth · users · audit · regions · places · shortlist ·
+                     comments · reactions · community · moderation · ai · itinerary · maps)
 DB      : ✅ 21 bảng — users · refresh_tokens · email_verification_tokens ·
                     audit_logs · regions · places · place_photos · opening_hours ·
                     shortlists · posts · post_media · comments · reactions ·
                     manager_regions · itineraries · itinerary_stops · + các bảng auth cũ
-API     : ✅ ~50 endpoint — chạy thật :3000, Swagger UI mở được
-Seed    : ✅ 5 tài khoản + 62 regions (đầy đủ 34 tỉnh/TP của VN) + 13 food places mẫu
+API     : ✅ ~50 endpoint + maps (geocode / reverse / route) — chạy thật :3000, Swagger UI mở được
+Seed    : ✅ 5 tài khoản + 62 regions + 108 địa điểm mẫu (giờ mở cửa, ảnh) + 14 bài cộng đồng
 FE      : ✅ tầng API dùng chung, typecheck sạch
 Perf    : ✅ gzip (~74% payload reduction) · Cache-Control 7 endpoint ·
               Redis cache 5 endpoint (30s-30p) · 3 composite index
@@ -132,8 +132,9 @@ D:\EXE\be
 │       │   │   ├── reactions/     #   like/love/wow/helpful
 │       │   │   ├── community/     #   posts + media
 │       │   │   ├── moderation/    #   queue + approve/reject
-│       │   │   ├── ai/            #   Gemini Round-Robin (2 keys) + 5 options
-│       │   │   └── itinerary/     #   create → generate → apply
+│       │   │   ├── ai/            #   LLM chọn địa điểm + scheduler cố định
+│       │   │   ├── itinerary/     #   create → generate → apply
+│       │   │   └── maps/          #   geocode Photon/Nominatim + route OSRM
 │       │   ├── prisma/            #   PrismaService
 │       │   ├── app.module.ts
 │       │   └── main.ts            #   Bootstrap + Swagger setup
@@ -283,14 +284,14 @@ sequenceDiagram
 | 1 | Monorepo (npm workspaces) | ✅ | `apps/api` + `packages/shared` + `packages/config` · npm install OK |
 | 2 | `.cursor/rules` + docs | ⬜ | rules viết code |
 | 3 | Docker + `.env.example` | ✅ | `docker-compose.yml` · Postgres 5433 + Redis 6379 |
-| 4 | Prisma schema đầy đủ + seed | ✅ | ✅ **21 bảng** · ✅ `seed.ts` (5 tài khoản + 62 regions + 13 sample food places) |
+| 4 | Prisma schema đầy đủ + seed | ✅ | ✅ **21 bảng** · ✅ `seed.ts` (5 tài khoản + 62 regions + 108 places + giờ mở cửa + 14 bài cộng đồng) |
 | 5 | `common/` dùng chung | ✅ | ✅ filter, interceptor, guards, decorators, middleware, RedisService, `buildPageMeta` · ✅ `BaseCrudService`, `BaseCrudController` skeleton, geo-distance utils |
 | 6 | Module `auth` | ✅ | ✅ register (kèm tuổi/địa chỉ) · ✅ verify email · ✅ Google OAuth (web + mobile) · ✅ login / refresh / logout / logout-all / me / update-profile / change-password |
 | 7 | Module `rbac` + `users` + `audit` | ✅ | ✅ `UsersService` + `UsersController` · ✅ `AuditService` · ✅ `AUDIT_ACTIONS` cho Post/Place/Itinerary |
 | 8 | Module `regions` + `places` + `shortlist` | ✅ | ✅ **RegionsModule** (CRUD + 7 thành phố lớn + children) · ✅ **PlacesModule** (CRUD + food filters + `schedule/build` nearest-neighbor + meal slot auto) · ✅ **ShortlistModule** (yêu thích + reorder + meal planning) |
 | 9 | Module `comments` + `reactions` + `community` | ✅ | ✅ **CommentsModule** (permission owner/admin/manager vùng, snapshot `authorName` + `createdAt`) · ✅ **ReactionsModule** (like/love/wow/helpful + count by place) · ✅ **CommunityModule** (posts + media) |
 | 10 | Module `moderation` | ✅ | ✅ approve/reject posts + places · ✅ RegionScopeGuard logic trong service · ✅ ManagerRegion assignment |
-| 11 | AI Service + Itinerary | ✅ | ✅ **Round-Robin 2 Gemini keys** + fallback · ✅ **AiService sinh 5 options** · ✅ **ItineraryService** (create → generate → apply 1 option) |
+| 11 | AI Service + Itinerary | ✅ | ✅ LLM (Claude hoặc Gemini, chọn bằng env) chỉ chọn địa điểm · ✅ scheduler nearest-neighbour + 2-opt xếp giờ, bữa ăn, di chuyển, chi phí · ✅ heuristic khi không có key · ✅ 5 phương án khác nhau trong từng khung giờ |
 | 12 | Test + CI | 🚧 | 28 unit test + `smoke-test.ps1` + `smoke-admin.ps1` (34 kiểm tra). ⬜ E2E Supertest, ⬜ GitHub Actions |
 | 13 | Cập nhật status + bàn giao M2 | ✅ | File này đã được cập nhật — bước tiếp theo: M2 |
 
@@ -305,14 +306,15 @@ sequenceDiagram
 | `users` | ✅ | `GET /admin/users` (phân trang + `?role=&status=&includeDeleted=`) · `GET /admin/users/:id`<br/>✅ `POST /admin/users/:id/suspend` · `/unsuspend` · `/restore` · `/force-logout`<br/>✅ `PATCH /admin/users/:id/role` · `DELETE /admin/users/:id` (`{hard:true}` = xoá hẳn) |
 | `audit` | ✅ | `AuditService` ghi tự động (before/after + IP + user agent). ⬜ endpoint xem log |
 | **regions** | ✅ | `GET /regions` (phân trang + search) · `GET /regions/cities` · `GET /regions/:id` · `GET /regions/:id/children`<br/>✅ Admin-only `POST /regions` · `PUT /regions/:id` · `DELETE /regions/:id` |
-| **places** | ✅ | `GET /places` (search + food filters: `category`, `cuisineType`, `mealType`, `priceRange`, `isHiddenPlace`)<br/>✅ `GET /places/:id` · `POST /places` (user submit) · `PUT /places/:id` · `DELETE /places/:id`<br/>✅ `POST /places/schedule/build` — nearest-neighbor sort + auto meal slot |
+| **places** | ✅ | `GET /places` (search + food filters: `category`, `cuisineType`, `mealType`, `priceRange`, `isHiddenPlace`)<br/>✅ `GET /places?lat&lng&radiusKm` — lọc gần vị trí, trả `distanceM`, gần nhất trước<br/>✅ `GET /places/:id` · `POST /places` (user submit + GPS check-in tuỳ chọn) · `PUT /places/:id` · `DELETE /places/:id` (**chỉ ADMIN**)<br/>✅ `POST /places/schedule/build` — nearest-neighbor sort + auto meal slot |
 | **shortlist** | ✅ | `GET /shortlists` · `POST /shortlists` · `PUT /shortlists/:id` · `DELETE /shortlists/:id` · `POST /shortlists/reorder` |
 | **comments** | ✅ | `GET /places/:id/comments` · `GET /posts/:id/comments`<br/>✅ `POST /places/:id/comments` · `POST /posts/:id/comments`<br/>✅ `DELETE /comments/:id` (owner/ADMIN/MANAGER-vùng) |
 | **reactions** | ✅ | `GET /places/:id/reactions/count` · `POST /places/:id/reactions` · `POST /posts/:id/reactions` · `DELETE /reactions/:id` |
 | **community** | ✅ | `GET /community/posts` (feed công khai) · `GET /community/posts/:id` · `GET /community/posts/me`<br/>✅ `POST /community/posts` (kèm media) · `DELETE /community/posts/:id` (owner/ADMIN/MANAGER-vùng) |
 | **moderation** | ✅ | `GET /moderation/queue/posts` · `GET /moderation/queue/places` (theo vùng của Manager)<br/>✅ `POST /moderation/posts/:id/approve` · `/reject` (kèm `note`)<br/>✅ `POST /moderation/places/:id/approve` · `/reject` |
-| **ai** | ✅ | `POST /ai/itinerary/generate` — sinh 5 options qua Gemini (Round-Robin 2 keys) |
-| **itinerary** | ✅ | `GET /itineraries` · `GET /itineraries/:id`<br/>✅ `POST /itineraries` (tạo DRAFT)<br/>✅ `POST /itineraries/:id/generate` (gọi AI, sinh 5 options)<br/>✅ `POST /itineraries/:id/apply` (`{optionNumber: 1-5}` → APPLIED)<br/>✅ `DELETE /itineraries/:id` |
+| **ai** | ✅ | `POST /ai/itinerary/generate` — lấy địa điểm đã duyệt trong DB, LLM chọn 5 phương án, scheduler xếp giờ / bữa / di chuyển / chi phí. Không có key thì dùng heuristic |
+| **itinerary** | ✅ | `GET /itineraries` · `GET /itineraries/:id`<br/>✅ `POST /itineraries` (tạo DRAFT, lưu số người, style, dietary, điểm xuất phát, địa điểm bắt buộc)<br/>✅ `POST /itineraries/:id/generate` (gọi AI, sinh 5 options, stop gắn `placeId` thật)<br/>✅ `POST /itineraries/:id/apply` (`{optionNumber: 1-5}` → APPLIED, ghi `estimatedCost`)<br/>✅ `DELETE /itineraries/:id` |
+| **maps** | ✅ | `GET /maps/geocode` (Photon, fallback Nominatim) · `GET /maps/reverse` · `POST /maps/route` (OSRM, fallback Haversine). Public, không cần API key |
 
 ### 5.3. Database (21 bảng)
 
@@ -340,6 +342,9 @@ sequenceDiagram
 - `20261010091556_init_stage_1_to_9` — toàn bộ bảng Stage 1–9
 - `20261010092134_add_audit_types` — enum mở rộng cho Audit
 - `20261010094011_add_schedule_columns` — thêm `scheduled_time` + `travel_time_from_prev_min` cho ItineraryStop
+- `20261015090000_add_perf_indexes` — composite index cho places và posts
+- `20261115142407_itinerary_planner_input` — itinerary lưu travellers, styles, dietary, điểm xuất phát, preferred place ids
+- `20261116093445_place_checkin` — `Place.checkinLat` / `checkinLng` + `submittedBy`
 
 ### 5.4. Tài liệu
 
@@ -532,6 +537,11 @@ npm run infra:reset   # xóa sạch container + volume (mất dữ liệu!)
 | `GEMINI_API_KEY_1` | Google Gemini key 1 (Round-Robin slot 1) | tuỳ chọn (nếu thiếu → fallback) |
 | `GEMINI_API_KEY_2` | Google Gemini key 2 (Round-Robin slot 2) | tuỳ chọn (nếu thiếu → fallback) |
 | `SERPAPI_KEY` | SerpAPI key cho Google Maps search | M2 |
+| `OSRM_BASE_URL` | Máy chủ OSRM tính tuyến (mặc định demo công khai) | tuỳ chọn |
+| `PHOTON_BASE_URL` | Geocode Photon (Komoot) | tuỳ chọn |
+| `NOMINATIM_BASE_URL` | Geocode / reverse Nominatim khi Photon lỗi | tuỳ chọn |
+| `MAPS_USER_AGENT` | User-Agent bắt buộc khi gọi Nominatim | tuỳ chọn |
+| `ANTHROPIC_API_KEY` | Claude cho planner. Có key này thì ưu tiên Claude | tuỳ chọn |
 | `CORS_ORIGINS` | Danh sách domain FE được phép gọi | ✅ |
 | `PORT` | Cổng API (mặc định 3000) | tuỳ chọn |
 | `NODE_ENV` | `development` / `production` | ✅ |
@@ -594,7 +604,7 @@ Ghi lại vì đây là loại lỗi **không bị bắt bởi typecheck hay uni
 |---|---|---|
 | 1 | **Upload ảnh/video thật** (S3-compatible hoặc MinIO local) | M2 |
 | 2 | **Tích hợp thời tiết** (OpenWeatherMap) vào AI prompt | M2 |
-| 3 | **Tích hợp giao thông** (OSRM/Google Routes) cho routing thật | M2 |
+| 3 | **Giao thông thật** — module `maps` đã gọi OSRM public (17/11). Còn thiếu máy chủ OSRM riêng và mật độ giao thông theo giờ | M2 |
 | 4 | **Thanh toán Stripe** cho lịch trình trên 3 ngày | M2 |
 | 5 | **Endpoint xem `audit_logs`** (đã ghi, chưa có API đọc) | M2 |
 | 6 | **E2E test** (Supertest) + **GitHub Actions** | M2 |
@@ -648,6 +658,15 @@ Ghi lại vì đây là loại lỗi **không bị bắt bởi typecheck hay uni
 | 2026-10-15 | **Performance Quick-Wins** | `compression` middleware (gzip giảm ~74% payload) · `CacheControlInterceptor` cho 7 endpoint public (`Cache-Control: public, max-age=...`) · `RedisService` thêm `getOrSet` + `invalidate` (helper cache-aside) · Cache layer cho 5 endpoint: `/regions/cities` (5p), `/regions` (60s), `/regions/:id` + `/regions/:id/children` (5p), `/places` search (30s), `/community/posts` feed (30s), AI itinerary (30p theo regionId+dates) · Composite indexes migration: `place_status_category_idx`, `place_status_region_idx`, `post_status_createdAt_idx` (mục 12 #9 done) · Tách `RedisService` → `RedisModule` `@Global` để mọi module dùng được |
 | 2026-10-15 | **Verify thật** | typecheck ✅ · 28 unit test pass ✅ · `nest build` ✅ · `npm run start:prod` boot thành công, Redis connected · Cache hit `/regions/cities` 14ms vs miss 35ms (2.5x) · Cache hit `/places?category=restaurant` 13ms vs miss 68ms (5x) · gzip `/regions` 4756 → 1246 bytes (74% reduction) · Cache header đúng: `Cache-Control: public, max-age=60` + `Vary: Origin, Accept-Encoding` |
 | 2026-10-15 | **Fix bug #15 `calculateDays` precedence** | Tách `diffMs = e.getTime() - s.getTime()` thành biến riêng (loại bỏ khả năng quên ngoặc) · đổi `private calculateDays` thành `static calculateDays` (test trực tiếp qua class) · thêm `apps/api/src/modules/ai/ai.service.spec.ts` 6 case (cùng ngày, 1 đêm, 2 đêm, 7 đêm, ngược thời gian, canh bug cũ) · test pass · cập nhật mục 11 thêm dòng #15 + bài học "tách biểu thức phức tạp ra biến trung gian có tên" |
+| 2026-11-15 | **`a920031` fix(api): siết sửa/xoá địa điểm** | `PUT`/`DELETE /places` chỉ còn ADMIN (trước đó user đăng nhập nào cũng sửa hoặc xoá được) · DTO class thật cho places, community, comments, reactions, ai để `ValidationPipe` chạy · `GET /community/posts/me` khai báo trước `posts/:id` · địa điểm thiếu hoặc chưa duyệt trả 404 thay vì 500 · xoá place gỡ shortlist trước (FK restrict) |
+| 2026-11-15 | **`78e5a26` feat(ai): planner bám địa điểm trong DB** | Lấy place đã duyệt theo vùng hoặc bán kính quanh điểm xuất phát, kèm giờ mở cửa và số shortlist, đưa id cho LLM · Claude hoặc Gemini chỉ chọn địa điểm mỗi ngày · `scheduler.ts` (nearest-neighbour + 2-opt) xếp bữa, giờ mở cửa, thời gian di chuyển, chi phí mỗi người · không có key thì heuristic · itinerary lưu số người, style, dietary, điểm xuất phát, preferred place ids · stop gắn `placeId` thật · apply ghi `estimatedCost` · migration `itinerary_planner_input` |
+| 2026-11-16 | **`b3e9429` feat(seed): 54 địa điểm Hà Nội, HCM, Đà Nẵng** | Chuyển fixture sang `prisma/seed-places.ts` · thêm `aiScore` và giờ mở cửa từng ngày (kể cả ngày đóng cửa) · upsert `opening_hours` để scheduler có ràng buộc thật |
+| 2026-11-16 | **`09074a8` fix(ai): 5 phương án không còn trùng nhau** | Xoay lựa chọn heuristic trong từng khung giờ để năm option khác nhau |
+| 2026-11-16 | **`085332a` feat(seed): thêm vùng, ảnh, bài cộng đồng** | Thêm 54 địa điểm ở Huế, Đà Lạt, Nha Trang, Phú Quốc, Sa Pa, Cần Thơ, Hạ Long, Hải Phòng (tổng 108) · mỗi nơi một ảnh placeholder picsum ổn định theo tên · 14 bài cộng đồng đã duyệt kèm media, comment, reaction, và một shortlist mẫu · `places.search` trả region và ảnh đầu tiên để thẻ danh sách render được |
+| 2026-11-16 | **`752d358` feat(places): check-in và tìm gần** | Migration `place_checkin`: `checkinLat` / `checkinLng` + `submittedBy` · `POST /places` lưu người gửi và toạ độ GPS tuỳ chọn · `GET /places?lat&lng&radiusKm` lọc bbox rồi Haversine, trả `distanceM`, gần nhất trước · hàng đợi duyệt địa điểm hiện người gửi |
+| 2026-11-16 | **`7b89c3e` docs: README** | Thêm README: cách chạy, danh sách module, việc đã xong và còn thiếu |
+| 2026-11-16 | **`a780214` chore: allowScripts** | `package.json` cho phép script cài của Prisma, argon2 và esbuild (npm 11 không chạy postinstall nếu chưa duyệt) |
+| 2026-11-17 | **`7180d85` feat(maps): OSRM + Photon/Nominatim** | Module `maps` mới, public, không cần API key · `GET /maps/geocode` tìm địa chỉ (Photon, fallback Nominatim) · `GET /maps/reverse` đổi lat/lng thành địa chỉ · `POST /maps/route` tính quãng đường và thời gian qua OSRM, lỗi thì Haversine · cache Redis · env `OSRM_BASE_URL`, `PHOTON_BASE_URL`, `NOMINATIM_BASE_URL`, `MAPS_USER_AGENT` · có `maps.service.spec.ts` |
 
 ---
 
